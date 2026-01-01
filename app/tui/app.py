@@ -503,18 +503,25 @@ class MemoryTUI(App):
     def __init__(self):
         """Initialize the TUI."""
         super().__init__()
-        self.manager = MemoryManager()
+        # Check first run BEFORE creating MemoryManager (which creates directories)
         self.is_first_run = self._check_first_run()
+        # Now initialize MemoryManager
+        self.manager = MemoryManager()
 
-    def _check_first_run(self) -> bool:
+    @staticmethod
+    def _check_first_run() -> bool:
         """Check if this is the first run (no directory setup completed).
 
         Returns:
             True if first run (needs setup), False if already configured
         """
-        # Check the actual configured data directory from the manager's config
-        data_dir = self.manager.config.data_dir
-        chroma_path = self.manager.config.chroma_path
+        # Import here to avoid circular dependency
+        from ..models.config import ServerConfig
+
+        # Load config to get the configured paths (without creating directories)
+        config = ServerConfig()
+        data_dir = config.data_dir
+        chroma_path = config.chroma_path
 
         # If chroma directory exists and has files, setup is complete
         if chroma_path.exists():
