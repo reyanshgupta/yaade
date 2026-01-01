@@ -1,6 +1,7 @@
 """Memory manager service for TUI operations."""
 
 import uuid
+import asyncio
 from typing import List, Dict, Any, Optional, cast
 from datetime import datetime
 
@@ -223,62 +224,48 @@ class MemoryManager:
         limit: int = 10,
         filter_tags: Optional[List[str]] = None
     ) -> List[Dict[str, Any]]:
-        """Search for memories using semantic similarity.
+        """Search disabled - returns empty list."""
+        return []
 
-        Args:
-            query: Search query text
-            limit: Maximum number of results to return
-            filter_tags: Optional list of tags to filter by
+    async def calculate_storage_size(self) -> tuple[int, str]:
+        """Calculate total size of data directory.
 
         Returns:
-            List of matching memories with similarity scores
+            Tuple of (size_in_bytes, human_readable_size)
         """
-        # Generate query embedding
         try:
-            query_embedding = await self.embedding_service.encode_query(query)
-        except Exception as e:
-            return []
+            total_size = 0
+            for file_path in self.config.data_dir.rglob('*'):
+                if file_path.is_file():
+                    total_size += file_path.stat().st_size
 
-        # Build filter criteria
-        filter_metadata = None
-        if filter_tags:
-            filter_metadata = {"tags": {"$contains": filter_tags[0]}}
-
-        # Search vector store
-        try:
-            results = await self.vector_store.search_similar(
-                query_embedding=query_embedding,
-                n_results=limit,
-                filter_metadata=filter_metadata
-            )
-        except Exception as e:
-            return []
-
-        # Format results
-        formatted_results = []
-        if results.get("ids") and results["ids"][0]:
-            for i, memory_id in enumerate(results["ids"][0]):
-                formatted_results.append({
-                    "memory_id": memory_id,
-                    "content": results["documents"][0][i],
-                    "similarity_score": 1.0 - results["distances"][0][i],
-                    "metadata": results["metadatas"][0][i]
-                })
-
-        return formatted_results
+            # Convert to human-readable format
+            size_bytes = total_size
+            size = float(total_size)
+            for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                if size < 1024.0:
+                    return size_bytes, f"{size:.1f} {unit}"
+                size /= 1024.0
+            return size_bytes, f"{size:.1f} PB"
+        except Exception:
+            return 0, "0 B"
 
     async def get_stats(self) -> Dict[str, Any]:
         """Get memory statistics.
 
         Returns:
-            Dictionary with memory statistics
+            Dictionary with memory statistics including storage info
         """
         try:
             total_memories = await self.vector_store.count_memories()
+            storage_bytes, storage_size = await self.calculate_storage_size()
             return {
                 "total_memories": total_memories,
                 "embedding_model": self.config.embedding_model_name,
-                "data_directory": str(self.config.data_dir)
+                "data_directory": str(self.config.data_dir),
+                "storage_location": str(self.config.data_dir.absolute()),
+                "storage_size": storage_size,
+                "storage_bytes": storage_bytes
             }
         except Exception as e:
             return {

@@ -1,15 +1,18 @@
 """Main Textual TUI application for memory management."""
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Vertical, Horizontal, VerticalScroll
+from textual.containers import Container, Vertical, Horizontal, VerticalScroll, Center
 from textual.widgets import Header, Footer, Static, Input, Button, DataTable, Label
 from textual.binding import Binding
 from textual.screen import Screen, ModalScreen
 from textual import on
 from typing import Optional, List, Dict, Any
 import asyncio
+import os
+from pathlib import Path
 
 from .memory_manager import MemoryManager
+from .settings import SettingsScreen
 
 
 class AddMemoryScreen(ModalScreen[bool]):
@@ -37,6 +40,11 @@ class AddMemoryScreen(ModalScreen[bool]):
         margin: 0 1;
     }
     """
+
+    BINDINGS = [
+        Binding("ctrl+s", "submit", "Save"),
+        Binding("escape", "cancel", "Cancel"),
+    ]
 
     def compose(self) -> ComposeResult:
         """Compose the add memory dialog."""
@@ -81,6 +89,14 @@ class AddMemoryScreen(ModalScreen[bool]):
         """Handle cancel button press."""
         self.dismiss(None)
 
+    async def action_submit(self) -> None:
+        """Handle Ctrl+S keyboard shortcut."""
+        await self.handle_add()
+
+    def action_cancel(self) -> None:
+        """Handle Escape keyboard shortcut."""
+        self.handle_cancel()
+
 
 class EditMemoryScreen(ModalScreen[bool]):
     """Modal screen for editing an existing memory."""
@@ -107,6 +123,11 @@ class EditMemoryScreen(ModalScreen[bool]):
         margin: 0 1;
     }
     """
+
+    BINDINGS = [
+        Binding("ctrl+s", "submit", "Save"),
+        Binding("escape", "cancel", "Cancel"),
+    ]
 
     def __init__(self, memory: Dict[str, Any]):
         """Initialize with memory data."""
@@ -175,71 +196,108 @@ class EditMemoryScreen(ModalScreen[bool]):
         """Handle cancel button press."""
         self.dismiss(None)
 
+    async def action_submit(self) -> None:
+        """Handle Ctrl+S keyboard shortcut."""
+        await self.handle_save()
 
-class SearchScreen(ModalScreen[str]):
-    """Modal screen for searching memories."""
+    def action_cancel(self) -> None:
+        """Handle Escape keyboard shortcut."""
+        self.handle_cancel()
+
+
+class MainMenuScreen(Screen):
+    """Main menu screen for the application."""
 
     CSS = """
-    SearchScreen {
+    MainMenuScreen {
         align: center middle;
     }
 
-    #dialog {
+    #menu-container {
         width: 60;
         height: auto;
-        border: thick $background 80%;
+        border: thick $primary;
         background: $surface;
-        padding: 1;
+        padding: 2;
     }
 
-    #buttons {
-        height: auto;
-        margin-top: 1;
+    #title {
+        text-align: center;
+        text-style: bold;
+        color: $accent;
+        margin-bottom: 2;
     }
 
-    Button {
-        margin: 0 1;
+    #subtitle {
+        text-align: center;
+        color: $text-muted;
+        margin-bottom: 3;
+    }
+
+    .menu-button {
+        width: 100%;
+        margin-bottom: 1;
     }
     """
 
+    BINDINGS = [
+        Binding("1", "memory_management", "Memory Management"),
+        Binding("2", "settings", "Settings"),
+        Binding("q", "quit", "Quit"),
+    ]
+
     def compose(self) -> ComposeResult:
-        """Compose the search dialog."""
-        with Container(id="dialog"):
-            yield Label("Search Memories", id="title")
-            yield Label("Enter search query:")
-            yield Input(placeholder="Search...", id="query")
-            with Horizontal(id="buttons"):
-                yield Button("Search", variant="primary", id="search")
-                yield Button("Cancel", variant="default", id="cancel")
+        """Compose the main menu."""
+        yield Header()
+        with Center():
+            with Container(id="menu-container"):
+                yield Label("Memory Server for AI", id="title")
+                yield Label("Local MCP-Compatible Memory Storage", id="subtitle")
+                yield Button("Memory Management [1]", id="memory_mgmt", classes="menu-button", variant="primary")
+                yield Button("Settings [2]", id="settings", classes="menu-button", variant="default")
+                yield Button("Quit [Q]", id="quit", classes="menu-button", variant="error")
+        yield Footer()
 
-    @on(Button.Pressed, "#search")
-    async def handle_search(self) -> None:
-        """Handle search button press."""
-        query_input = self.query_one("#query", Input)
-        query = query_input.value.strip()
+    @on(Button.Pressed, "#memory_mgmt")
+    def handle_memory_mgmt(self) -> None:
+        """Navigate to memory management."""
+        self.action_memory_management()
 
-        if not query:
-            self.app.notify("Please enter a search query", severity="error")
-            return
+    @on(Button.Pressed, "#settings")
+    def handle_settings(self) -> None:
+        """Navigate to settings."""
+        self.action_settings()
 
-        self.dismiss(query)
+    @on(Button.Pressed, "#quit")
+    def handle_quit(self) -> None:
+        """Quit the application."""
+        self.app.exit()
 
-    @on(Button.Pressed, "#cancel")
-    def handle_cancel(self) -> None:
-        """Handle cancel button press."""
-        self.dismiss(None)
+    def action_memory_management(self) -> None:
+        """Switch to memory management screen."""
+        self.app.push_screen("memory_screen")
+
+    def action_settings(self) -> None:
+        """Show settings dialog."""
+        config_data = {
+            'data_dir': str(self.app.manager.config.data_dir),
+            'embedding_model': self.app.manager.config.embedding_model_name,
+            'host': self.app.manager.config.host,
+            'port': self.app.manager.config.port,
+        }
+        self.app.push_screen(SettingsScreen(config_data))
+
+    def action_quit(self) -> None:
+        """Quit the application."""
+        self.app.exit()
 
 
-class MemoryTUI(App):
-    """A Textual TUI for memory management."""
+class MemoryManagementScreen(Screen):
+    """Screen for memory management operations."""
 
     CSS = """
-    Screen {
-        background: $background;
-    }
-
     #stats {
-        height: 3;
+        height: 4;
         background: $boost;
         padding: 1;
     }
@@ -258,20 +316,19 @@ class MemoryTUI(App):
         Binding("a", "add_memory", "Add"),
         Binding("e", "edit_memory", "Edit"),
         Binding("d", "delete_memory", "Delete"),
-        Binding("s", "search_memory", "Search"),
         Binding("r", "refresh", "Refresh"),
+        Binding("s", "settings", "Settings"),
+        Binding("escape", "back", "Back to Menu"),
         Binding("q", "quit", "Quit"),
     ]
 
     def __init__(self):
-        """Initialize the TUI."""
+        """Initialize the memory management screen."""
         super().__init__()
-        self.manager = MemoryManager()
         self.memories: List[Dict[str, Any]] = []
-        self.current_query: Optional[str] = None
 
     def compose(self) -> ComposeResult:
-        """Compose the main screen."""
+        """Compose the memory management screen."""
         yield Header()
         yield Container(
             Static("Loading statistics...", id="stats"),
@@ -293,12 +350,12 @@ class MemoryTUI(App):
 
     async def refresh_stats(self) -> None:
         """Refresh the statistics display."""
-        stats = await self.manager.get_stats()
+        stats = await self.app.manager.get_stats()
         stats_widget = self.query_one("#stats", Static)
         stats_widget.update(
             f"Total Memories: {stats.get('total_memories', 0)} | "
-            f"Model: {stats.get('embedding_model', 'N/A')} | "
-            f"Data: {stats.get('data_directory', 'N/A')}"
+            f"Model: {stats.get('embedding_model', 'N/A')}\n"
+            f"Storage: {stats.get('storage_location', 'N/A')} ({stats.get('storage_size', 'N/A')})"
         )
 
     async def refresh_memories(self) -> None:
@@ -306,12 +363,8 @@ class MemoryTUI(App):
         table = self.query_one(DataTable)
         table.clear()
 
-        if self.current_query:
-            # Search mode
-            self.memories = await self.manager.search_memories(self.current_query, limit=50)
-        else:
-            # List all mode
-            self.memories = await self.manager.list_all_memories(limit=50)
+        # Always list all memories (search removed)
+        self.memories = await self.app.manager.list_all_memories(limit=50)
 
         for memory in self.memories:
             metadata = memory.get("metadata", {})
@@ -335,7 +388,7 @@ class MemoryTUI(App):
 
     def action_add_memory(self) -> None:
         """Show add memory dialog."""
-        self.push_screen(AddMemoryScreen(), self.handle_add_memory)
+        self.app.push_screen(AddMemoryScreen(), self.handle_add_memory)
 
     async def handle_add_memory(self, result: Optional[tuple]) -> None:
         """Handle add memory result."""
@@ -344,29 +397,29 @@ class MemoryTUI(App):
 
         content, tags, importance = result
 
-        self.notify("Adding memory...")
-        response = await self.manager.add_memory(
+        self.app.notify("Adding memory...")
+        response = await self.app.manager.add_memory(
             content=content,
             tags=tags,
             importance=importance
         )
 
         if response.get("status") == "added":
-            self.notify("Memory added successfully", severity="information")
+            self.app.notify("Memory added successfully", severity="information")
             await self.refresh_memories()
         else:
-            self.notify(f"Failed to add memory: {response.get('error', 'Unknown error')}", severity="error")
+            self.app.notify(f"Failed to add memory: {response.get('error', 'Unknown error')}", severity="error")
 
     def action_edit_memory(self) -> None:
         """Show edit memory dialog."""
         table = self.query_one(DataTable)
 
         if table.cursor_row < 0 or table.cursor_row >= len(self.memories):
-            self.notify("Please select a memory to edit", severity="warning")
+            self.app.notify("Please select a memory to edit", severity="warning")
             return
 
         memory = self.memories[table.cursor_row]
-        self.push_screen(EditMemoryScreen(memory), self.handle_edit_memory)
+        self.app.push_screen(EditMemoryScreen(memory), self.handle_edit_memory)
 
     async def handle_edit_memory(self, result: Optional[tuple]) -> None:
         """Handle edit memory result."""
@@ -375,8 +428,8 @@ class MemoryTUI(App):
 
         memory_id, content, tags, importance = result
 
-        self.notify("Updating memory...")
-        response = await self.manager.update_memory(
+        self.app.notify("Updating memory...")
+        response = await self.app.manager.update_memory(
             memory_id=memory_id,
             content=content,
             tags=tags,
@@ -384,53 +437,137 @@ class MemoryTUI(App):
         )
 
         if response.get("status") == "added":
-            self.notify("Memory updated successfully", severity="information")
+            self.app.notify("Memory updated successfully", severity="information")
             await self.refresh_memories()
         else:
-            self.notify(f"Failed to update memory: {response.get('error', 'Unknown error')}", severity="error")
+            self.app.notify(f"Failed to update memory: {response.get('error', 'Unknown error')}", severity="error")
 
     async def action_delete_memory(self) -> None:
         """Delete the selected memory."""
         table = self.query_one(DataTable)
 
         if table.cursor_row < 0 or table.cursor_row >= len(self.memories):
-            self.notify("Please select a memory to delete", severity="warning")
+            self.app.notify("Please select a memory to delete", severity="warning")
             return
 
         memory = self.memories[table.cursor_row]
         memory_id = memory["memory_id"]
 
-        self.notify("Deleting memory...")
-        response = await self.manager.delete_memory(memory_id)
+        self.app.notify("Deleting memory...")
+        response = await self.app.manager.delete_memory(memory_id)
 
         if response.get("status") == "deleted":
-            self.notify("Memory deleted successfully", severity="information")
+            self.app.notify("Memory deleted successfully", severity="information")
             await self.refresh_memories()
         else:
-            self.notify(f"Failed to delete memory: {response.get('error', 'Unknown error')}", severity="error")
-
-    def action_search_memory(self) -> None:
-        """Show search dialog."""
-        self.push_screen(SearchScreen(), self.handle_search)
-
-    async def handle_search(self, query: Optional[str]) -> None:
-        """Handle search result."""
-        if query is None:
-            return
-
-        self.current_query = query
-        self.notify(f"Searching for: {query}", severity="information")
-        await self.refresh_memories()
+            self.app.notify(f"Failed to delete memory: {response.get('error', 'Unknown error')}", severity="error")
 
     async def action_refresh(self) -> None:
         """Refresh the memory list."""
-        self.current_query = None  # Clear search
-        self.notify("Refreshing...", severity="information")
+        self.app.notify("Refreshing...", severity="information")
         await self.refresh_memories()
+
+    def action_settings(self) -> None:
+        """Show settings dialog."""
+        config_data = {
+            'data_dir': str(self.app.manager.config.data_dir),
+            'embedding_model': self.app.manager.config.embedding_model_name,
+            'host': self.app.manager.config.host,
+            'port': self.app.manager.config.port,
+        }
+        self.app.push_screen(SettingsScreen(config_data))
+
+    def action_back(self) -> None:
+        """Return to main menu."""
+        self.app.pop_screen()
 
     def action_quit(self) -> None:
         """Quit the application."""
-        self.exit()
+        self.app.exit()
+
+
+class MemoryTUI(App):
+    """A Textual TUI for memory management."""
+
+    CSS = """
+    Screen {
+        background: $background;
+    }
+    """
+
+    SCREENS = {
+        "menu": MainMenuScreen,
+        "memory_screen": MemoryManagementScreen,
+    }
+
+    def __init__(self):
+        """Initialize the TUI."""
+        super().__init__()
+        self.manager = MemoryManager()
+        self.is_first_run = self._check_first_run()
+
+    def _check_first_run(self) -> bool:
+        """Check if this is the first run (no directory setup completed).
+
+        Returns:
+            True if first run (needs setup), False if already configured
+        """
+        # Check the actual configured data directory from the manager's config
+        data_dir = self.manager.config.data_dir
+        chroma_path = self.manager.config.chroma_path
+
+        # If chroma directory exists and has files, setup is complete
+        if chroma_path.exists():
+            try:
+                # Check if directory has any files (not just .DS_Store)
+                files = [f for f in chroma_path.iterdir() if not f.name.startswith('.')]
+                if files:
+                    return False  # Already set up
+            except Exception:
+                pass
+
+        # If data directory exists and has any content, consider it set up
+        if data_dir.exists():
+            try:
+                files = [f for f in data_dir.iterdir() if not f.name.startswith('.')]
+                if files:
+                    return False  # Already set up
+            except Exception:
+                pass
+
+        # No setup found
+        return True
+
+    def on_mount(self) -> None:
+        """Handle app mount event."""
+        if self.is_first_run:
+            # First-time setup: show settings screen directly
+            config_data = {
+                'data_dir': str(self.manager.config.data_dir),
+                'embedding_model': self.manager.config.embedding_model_name,
+                'host': self.manager.config.host,
+                'port': self.manager.config.port,
+            }
+            self.push_screen(SettingsScreen(config_data, is_first_run=True), self._handle_first_run_complete)
+        else:
+            # Already set up: go directly to memory management with menu in background
+            self.push_screen("menu")
+            self.push_screen("memory_screen")
+
+    def _handle_first_run_complete(self, result: bool) -> None:
+        """Handle completion of first-time setup.
+
+        Args:
+            result: True if setup completed, False if cancelled
+        """
+        if result:
+            # Setup completed, show main menu first, then memory management
+            # This ensures the user can navigate back properly
+            self.push_screen("menu")
+            self.push_screen("memory_screen")
+        else:
+            # Setup was cancelled, exit the app
+            self.exit()
 
 
 def run_tui() -> None:
