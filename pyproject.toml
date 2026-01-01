@@ -26,6 +26,8 @@ dependencies = [
     "pydantic-settings>=2.5.2",
     "mcp-server>=0.1.4",
     "numpy>=1.24.0",
+    "textual>=0.70.0",
+    "rich>=13.0.0",
 ]
 
 [project.urls]
@@ -36,6 +38,7 @@ Documentation = "https://github.com/your-username/memory-for-ai/wiki"
 
 [project.scripts]
 memory-server = "app.main:main"
+memory-tui = "app.cli:main"
 
 [tool.uv]
 package = true

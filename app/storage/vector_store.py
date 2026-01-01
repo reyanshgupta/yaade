@@ -154,7 +154,7 @@ class VectorStore:
 
     async def count_memories(self) -> int:
         """Get total count of memories in the store.
-        
+
         Returns:
             Number of memories
         """
@@ -164,3 +164,23 @@ class VectorStore:
         except Exception as e:
             logger.error(f"Error counting memories: {e}")
             return 0
+
+    async def get_all_memories(self, limit: Optional[int] = None) -> Dict[str, List[Any]]:
+        """Get all memories from the store.
+
+        Args:
+            limit: Optional maximum number of memories to return
+
+        Returns:
+            Dictionary with all memories
+        """
+        try:
+            results = self.collection.get(
+                limit=limit,
+                include=["metadatas", "documents"]
+            )
+            logger.info(f"Retrieved {len(results['ids'])} memories")
+            return results
+        except Exception as e:
+            logger.error(f"Error getting all memories: {e}")
+            return {"ids": [], "documents": [], "metadatas": []}
