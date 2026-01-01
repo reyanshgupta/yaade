@@ -116,7 +116,10 @@ class EditMemoryScreen(ModalScreen[bool]):
     def compose(self) -> ComposeResult:
         """Compose the edit memory dialog."""
         metadata = self.memory.get("metadata", {})
-        tags = metadata.get("tags", [])
+        # Tags are stored as comma-separated string in ChromaDB
+        tags_str = metadata.get("tags", "")
+        # Add spaces after commas for better readability
+        tags_display = tags_str.replace(",", ", ") if tags_str else ""
         importance = metadata.get("importance", 1.0)
 
         with Container(id="dialog"):
@@ -129,7 +132,7 @@ class EditMemoryScreen(ModalScreen[bool]):
             )
             yield Label("Tags (comma-separated):")
             yield Input(
-                value=", ".join(tags) if tags else "",
+                value=tags_display,
                 placeholder="tag1, tag2, tag3",
                 id="tags"
             )
@@ -312,7 +315,9 @@ class MemoryTUI(App):
 
         for memory in self.memories:
             metadata = memory.get("metadata", {})
-            tags = ", ".join(metadata.get("tags", []))
+            # Tags are stored as comma-separated string in ChromaDB
+            tags_data = metadata.get("tags", "")
+            tags = tags_data.replace(",", ", ") if tags_data else "-"
             importance = metadata.get("importance", 1.0)
             content = memory.get("content", "")
 
@@ -322,7 +327,7 @@ class MemoryTUI(App):
             table.add_row(
                 memory["memory_id"][:8],
                 display_content,
-                tags or "-",
+                tags,
                 str(importance)
             )
 
