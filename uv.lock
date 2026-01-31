@@ -765,35 +765,6 @@ wheels = [
 ]
 
 [[package]]
-name = "memory-for-ai"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "chromadb" },
-    { name = "fastapi", extra = ["standard"] },
-    { name = "mcp", extra = ["cli"] },
-    { name = "mcp-server" },
-    { name = "numpy" },
-    { name = "pydantic-settings" },
-    { name = "rich" },
-    { name = "sentence-transformers" },
-    { name = "textual" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "chromadb", specifier = ">=1.0.15" },
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.116.1" },
-    { name = "mcp", extras = ["cli"], specifier = ">=1.12.3" },
-    { name = "mcp-server", specifier = ">=0.1.4" },
-    { name = "numpy", specifier = ">=1.24.0" },
-    { name = "pydantic-settings", specifier = ">=2.5.2" },
-    { name = "rich", specifier = ">=13.0.0" },
-    { name = "sentence-transformers", specifier = ">=5.0.0" },
-    { name = "textual", specifier = ">=0.70.0" },
-]
-
-[[package]]
 name = "mmh3"
 version = "5.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2505,6 +2476,35 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/86/eb/20b6cdf273913d0ad05a6a14aed4b9a85591c18a987a3d47f20fa13dcc47/websockets-15.0.1-cp313-cp313-win32.whl", hash = "sha256:ba9e56e8ceeeedb2e080147ba85ffcd5cd0711b89576b83784d8605a7df455fa", size = 176393 },
     { url = "https://files.pythonhosted.org/packages/1b/6c/c65773d6cab416a64d191d6ee8a8b1c68a09970ea6909d16965d26bfed1e/websockets-15.0.1-cp313-cp313-win_amd64.whl", hash = "sha256:e09473f095a819042ecb2ab9465aee615bd9c2028e4ef7d933600a8401c79561", size = 176837 },
     { url = "https://files.pythonhosted.org/packages/fa/a8/5b41e0da817d64113292ab1f8247140aac61cbf6cfd085d6a0fa77f4984f/websockets-15.0.1-py3-none-any.whl", hash = "sha256:f7a866fbc1e97b5c617ee4116daaa09b722101d4a3c170c787450ba409f9736f", size = 169743 },
+]
+
+[[package]]
+name = "yaade"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "chromadb" },
+    { name = "fastapi", extra = ["standard"] },
+    { name = "mcp", extra = ["cli"] },
+    { name = "mcp-server" },
+    { name = "numpy" },
+    { name = "pydantic-settings" },
+    { name = "rich" },
+    { name = "sentence-transformers" },
+    { name = "textual" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "chromadb", specifier = ">=1.0.15" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.116.1" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.12.3" },
+    { name = "mcp-server", specifier = ">=0.1.4" },
+    { name = "numpy", specifier = ">=1.24.0" },
+    { name = "pydantic-settings", specifier = ">=2.5.2" },
+    { name = "rich", specifier = ">=13.0.0" },
+    { name = "sentence-transformers", specifier = ">=5.0.0" },
+    { name = "textual", specifier = ">=0.70.0" },
 ]
 
 [[package]]

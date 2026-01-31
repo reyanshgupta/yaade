@@ -1,4 +1,4 @@
-"""Data models for the memory server."""
+"""Data models for Yaade."""
 
 from .memory import Memory, MemoryType, MemorySource, MemoryCollection
 from .config import ServerConfig

@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo Setting up Claude Desktop MCP configuration for memory-for-ai (Windows)...
+echo Setting up Claude Desktop MCP configuration for Yaade (Windows)...
 
 :: Get the current project directory
 set "PROJECT_DIR=%~dp0..\.."
@@ -45,11 +45,11 @@ set "PROJECT_DIR_ESCAPED=%PROJECT_DIR:\=\\%"
 (
 echo {
 echo   "mcpServers": {
-echo     "memory-for-ai": {
+echo     "yaade": {
 echo       "command": "!UV_PATH_ESCAPED!",
-echo       "args": ["run", "--directory", "!PROJECT_DIR_ESCAPED!", "memory-server"],
+echo       "args": ["run", "--directory", "!PROJECT_DIR_ESCAPED!", "yaade", "serve"],
 echo       "env": {
-echo         "MEMORY_SERVER_LOG_LEVEL": "INFO"
+echo         "YAADE_LOG_LEVEL": "INFO"
 echo       }
 echo     }
 echo   }
@@ -57,7 +57,7 @@ echo }
 ) > "%CLAUDE_CONFIG_FILE%"
 
 echo.
-echo ✅ Claude Desktop MCP configuration has been set up successfully!
+echo Claude Desktop MCP configuration has been set up successfully!
 echo.
 echo Configuration details:
 echo - Project directory: %PROJECT_DIR%

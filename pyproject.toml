@@ -1,11 +1,11 @@
 [project]
-name = "memory-for-ai"
+name = "yaade"
 version = "0.1.0"
-description = "Local MCP-compatible server providing centralized memory storage for AI agents with semantic search capabilities"
+description = "Yaade (यादें) - Local MCP-compatible memory storage for AI agents with semantic search"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Memory Server Contributors"}
+    {name = "Yaade Contributors"}
 ]
 keywords = ["ai", "memory", "mcp", "claude", "vector-database", "embeddings"]
 classifiers = [
@@ -31,14 +31,13 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-username/memory-for-ai"
-Repository = "https://github.com/your-username/memory-for-ai"
-Issues = "https://github.com/your-username/memory-for-ai/issues"
-Documentation = "https://github.com/your-username/memory-for-ai/wiki"
+Homepage = "https://github.com/your-username/yaade"
+Repository = "https://github.com/your-username/yaade"
+Issues = "https://github.com/your-username/yaade/issues"
+Documentation = "https://github.com/your-username/yaade/wiki"
 
 [project.scripts]
-memory-server = "app.main:main"
-memory-tui = "app.cli:main"
+yaade = "app.cli:main"
 
 [tool.uv]
 package = true

@@ -39,6 +39,14 @@ class AddMemoryScreen(ModalScreen[bool]):
     Button {
         margin: 0 1;
     }
+
+    Button:focus {
+        text-style: bold reverse;
+    }
+
+    Input:focus {
+        border: tall $accent;
+    }
     """
 
     BINDINGS = [
@@ -59,6 +67,10 @@ class AddMemoryScreen(ModalScreen[bool]):
             with Horizontal(id="buttons"):
                 yield Button("Add", variant="primary", id="add")
                 yield Button("Cancel", variant="default", id="cancel")
+
+    def on_mount(self) -> None:
+        """Set initial focus on content input."""
+        self.query_one("#content", Input).focus()
 
     @on(Button.Pressed, "#add")
     async def handle_add(self) -> None:
@@ -122,6 +134,14 @@ class EditMemoryScreen(ModalScreen[bool]):
     Button {
         margin: 0 1;
     }
+
+    Button:focus {
+        text-style: bold reverse;
+    }
+
+    Input:focus {
+        border: tall $accent;
+    }
     """
 
     BINDINGS = [
@@ -166,6 +186,10 @@ class EditMemoryScreen(ModalScreen[bool]):
             with Horizontal(id="buttons"):
                 yield Button("Save", variant="primary", id="save")
                 yield Button("Cancel", variant="default", id="cancel")
+
+    def on_mount(self) -> None:
+        """Set initial focus on content input."""
+        self.query_one("#content", Input).focus()
 
     @on(Button.Pressed, "#save")
     async def handle_save(self) -> None:
@@ -213,34 +237,83 @@ class MainMenuScreen(Screen):
         align: center middle;
     }
 
-    #menu-container {
-        width: 60;
+    #main-container {
+        width: 70;
         height: auto;
-        border: thick $primary;
         background: $surface;
-        padding: 2;
+        padding: 1 2;
     }
 
-    #title {
+    #logo-container {
+        width: 100%;
+        height: auto;
+        content-align: center middle;
+        padding: 1 0;
+    }
+
+    #logo {
         text-align: center;
-        text-style: bold;
         color: $accent;
-        margin-bottom: 2;
     }
 
-    #subtitle {
+    #tagline {
         text-align: center;
         color: $text-muted;
-        margin-bottom: 3;
+        margin-bottom: 1;
+    }
+
+    #stats-container {
+        width: 100%;
+        height: auto;
+        border: solid $primary;
+        padding: 1;
+        margin-bottom: 1;
+    }
+
+    #stats-title {
+        text-style: bold;
+        color: $accent;
+        margin-bottom: 1;
+    }
+
+    .stat-row {
+        height: auto;
+    }
+
+    .stat-label {
+        color: $text-muted;
+        width: 20;
+    }
+
+    .stat-value {
+        color: $text;
+    }
+
+    #menu-section {
+        width: 100%;
+        height: auto;
+        padding: 1 0;
     }
 
     .menu-button {
         width: 100%;
         margin-bottom: 1;
     }
+
+    .menu-button:focus {
+        text-style: bold reverse;
+    }
+
+    #footer-text {
+        text-align: center;
+        color: $text-muted;
+        margin-top: 1;
+    }
     """
 
     BINDINGS = [
+        Binding("up,k", "focus_previous", "Up", show=False),
+        Binding("down,j", "focus_next", "Down", show=False),
         Binding("1", "memory_management", "Memory Management"),
         Binding("2", "settings", "Settings"),
         Binding("q", "quit", "Quit"),
@@ -250,13 +323,74 @@ class MainMenuScreen(Screen):
         """Compose the main menu."""
         yield Header()
         with Center():
-            with Container(id="menu-container"):
-                yield Label("Memory Server for AI", id="title")
-                yield Label("Local MCP-Compatible Memory Storage", id="subtitle")
-                yield Button("Memory Management [1]", id="memory_mgmt", classes="menu-button", variant="primary")
-                yield Button("Settings [2]", id="settings", classes="menu-button", variant="default")
-                yield Button("Quit [Q]", id="quit", classes="menu-button", variant="error")
+            with Container(id="main-container"):
+                # Logo section
+                with Container(id="logo-container"):
+                    yield Static(
+                        """
+╦ ╦┌─┐┌─┐┌┬┐┌─┐
+╚╦╝├─┤├─┤ ││├┤ 
+ ╩ ┴ ┴┴ ┴─┴┘└─┘
+        """.strip(),
+                        id="logo"
+                    )
+                    yield Label("Memory Storage for AI", id="tagline")
+
+                # Stats section
+                with Container(id="stats-container"):
+                    yield Label("Quick Stats", id="stats-title")
+                    with Horizontal(classes="stat-row"):
+                        yield Label("Memories:", classes="stat-label")
+                        yield Label("Loading...", id="stat-memories", classes="stat-value")
+                    with Horizontal(classes="stat-row"):
+                        yield Label("Storage:", classes="stat-label")
+                        yield Label("Loading...", id="stat-storage", classes="stat-value")
+                    with Horizontal(classes="stat-row"):
+                        yield Label("Status:", classes="stat-label")
+                        yield Label("Ready", id="stat-status", classes="stat-value")
+
+                # Menu buttons
+                with Container(id="menu-section"):
+                    yield Button("Memories [1]", id="memory_mgmt", classes="menu-button", variant="primary")
+                    yield Button("Settings [2]", id="settings", classes="menu-button", variant="default")
+                    yield Button("Quit [Q]", id="quit", classes="menu-button", variant="error")
+
+                yield Label("v0.1.0", id="footer-text")
         yield Footer()
+
+    async def on_mount(self) -> None:
+        """Set initial focus and load stats."""
+        self.query_one("#memory_mgmt", Button).focus()
+        await self._load_stats()
+
+    async def on_screen_resume(self) -> None:
+        """Refresh the screen and restore focus when it becomes visible again."""
+        self.refresh(layout=True)
+        self.query_one("#memory_mgmt", Button).focus()
+        await self._load_stats()
+
+    async def _load_stats(self) -> None:
+        """Load and display statistics."""
+        try:
+            stats = await self.app.manager.get_stats()
+            
+            memories_label = self.query_one("#stat-memories", Label)
+            storage_label = self.query_one("#stat-storage", Label)
+            status_label = self.query_one("#stat-status", Label)
+            
+            memories_label.update(str(stats.get('total_memories', 0)))
+            storage_label.update(f"{stats.get('storage_location', 'N/A')} ({stats.get('storage_size', 'N/A')})")
+            status_label.update("Ready")
+        except Exception:
+            pass
+
+    def action_focus_previous(self) -> None:
+        """Move focus to previous button."""
+        self.focus_previous()
+
+    def action_focus_next(self) -> None:
+        """Move focus to next button."""
+        self.focus_next()
 
     @on(Button.Pressed, "#memory_mgmt")
     def handle_memory_mgmt(self) -> None:
@@ -279,13 +413,7 @@ class MainMenuScreen(Screen):
 
     def action_settings(self) -> None:
         """Show settings dialog."""
-        config_data = {
-            'data_dir': str(self.app.manager.config.data_dir),
-            'embedding_model': self.app.manager.config.embedding_model_name,
-            'host': self.app.manager.config.host,
-            'port': self.app.manager.config.port,
-        }
-        self.app.push_screen(SettingsScreen(config_data))
+        self.app.push_screen(SettingsScreen(self.app._get_config_data()))
 
     def action_quit(self) -> None:
         """Quit the application."""
@@ -310,9 +438,17 @@ class MemoryManagementScreen(Screen):
     DataTable {
         height: 100%;
     }
+
+    DataTable > .datatable--cursor {
+        background: $accent;
+        color: $text;
+    }
     """
 
     BINDINGS = [
+        Binding("up,k", "cursor_up", "Up", show=False),
+        Binding("down,j", "cursor_down", "Down", show=False),
+        Binding("enter", "edit_memory", "Edit", show=False),
         Binding("a", "add_memory", "Add"),
         Binding("e", "edit_memory", "Edit"),
         Binding("d", "delete_memory", "Delete"),
@@ -344,9 +480,24 @@ class MemoryManagementScreen(Screen):
         table = self.query_one(DataTable)
         table.cursor_type = "row"
         table.add_columns("ID", "Content", "Tags", "Importance")
+        table.focus()
 
         await self.refresh_stats()
         await self.refresh_memories()
+
+    def on_screen_resume(self) -> None:
+        """Restore focus when returning to this screen."""
+        self.query_one(DataTable).focus()
+
+    def action_cursor_up(self) -> None:
+        """Move cursor up in the table."""
+        table = self.query_one(DataTable)
+        table.action_cursor_up()
+
+    def action_cursor_down(self) -> None:
+        """Move cursor down in the table."""
+        table = self.query_one(DataTable)
+        table.action_cursor_down()
 
     async def refresh_stats(self) -> None:
         """Refresh the statistics display."""
@@ -469,13 +620,7 @@ class MemoryManagementScreen(Screen):
 
     def action_settings(self) -> None:
         """Show settings dialog."""
-        config_data = {
-            'data_dir': str(self.app.manager.config.data_dir),
-            'embedding_model': self.app.manager.config.embedding_model_name,
-            'host': self.app.manager.config.host,
-            'port': self.app.manager.config.port,
-        }
-        self.app.push_screen(SettingsScreen(config_data))
+        self.app.push_screen(SettingsScreen(self.app._get_config_data()))
 
     def action_back(self) -> None:
         """Return to main menu."""
@@ -507,6 +652,51 @@ class MemoryTUI(App):
         self.is_first_run = self._check_first_run()
         # Now initialize MemoryManager
         self.manager = MemoryManager()
+        # Load saved theme
+        self._saved_theme = self._load_theme()
+
+    @staticmethod
+    def _load_theme() -> str:
+        """Load theme from .env file.
+
+        Returns:
+            Theme name, defaults to 'textual-dark'
+        """
+        env_path = Path.cwd() / '.env'
+        if env_path.exists():
+            try:
+                with open(env_path, 'r') as f:
+                    for line in f:
+                        # Check both variable names for compatibility
+                        if line.startswith('YAADE_THEME=') or line.startswith('MEMORY_SERVER_THEME='):
+                            return line.strip().split('=', 1)[1]
+            except Exception:
+                pass
+        return 'textual-dark'
+
+    def on_mount(self) -> None:
+        """Handle app mount event."""
+        # Apply saved theme
+        self.theme = self._saved_theme
+
+        if self.is_first_run:
+            # First-time setup: show settings screen directly
+            config_data = self._get_config_data()
+            self.push_screen(SettingsScreen(config_data, is_first_run=True), self._handle_first_run_complete)
+        else:
+            # Already set up: go directly to memory management with menu in background
+            self.push_screen("menu")
+            self.push_screen("memory_screen")
+
+    def _get_config_data(self) -> dict:
+        """Get configuration data for settings screen."""
+        return {
+            'data_dir': str(self.manager.config.data_dir),
+            'embedding_model': self.manager.config.embedding_model_name,
+            'host': self.manager.config.host,
+            'port': self.manager.config.port,
+            'theme': self.theme or 'textual-dark',
+        }
 
     @staticmethod
     def _check_first_run() -> bool:
@@ -544,22 +734,6 @@ class MemoryTUI(App):
 
         # No setup found
         return True
-
-    def on_mount(self) -> None:
-        """Handle app mount event."""
-        if self.is_first_run:
-            # First-time setup: show settings screen directly
-            config_data = {
-                'data_dir': str(self.manager.config.data_dir),
-                'embedding_model': self.manager.config.embedding_model_name,
-                'host': self.manager.config.host,
-                'port': self.manager.config.port,
-            }
-            self.push_screen(SettingsScreen(config_data, is_first_run=True), self._handle_first_run_complete)
-        else:
-            # Already set up: go directly to memory management with menu in background
-            self.push_screen("menu")
-            self.push_screen("memory_screen")
 
     def _handle_first_run_complete(self, result: bool) -> None:
         """Handle completion of first-time setup.

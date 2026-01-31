@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Setting up Claude Desktop MCP configuration for memory-for-ai (macOS)..."
+echo "Setting up Claude Desktop MCP configuration for Yaade (macOS)..."
 
 # Get the current project directory (absolute path)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -38,11 +38,11 @@ echo "Creating Claude Desktop MCP configuration..."
 cat > "$CLAUDE_CONFIG_FILE" << EOF
 {
   "mcpServers": {
-    "memory-for-ai": {
+    "yaade": {
       "command": "$UV_PATH",
-      "args": ["run", "--directory", "$PROJECT_DIR", "memory-server"],
+      "args": ["run", "--directory", "$PROJECT_DIR", "yaade", "serve"],
       "env": {
-        "MEMORY_SERVER_LOG_LEVEL": "INFO"
+        "YAADE_LOG_LEVEL": "INFO"
       }
     }
   }
@@ -50,7 +50,7 @@ cat > "$CLAUDE_CONFIG_FILE" << EOF
 EOF
 
 echo
-echo "✅ Claude Desktop MCP configuration has been set up successfully!"
+echo "Claude Desktop MCP configuration has been set up successfully!"
 echo
 echo "Configuration details:"
 echo "- Project directory: $PROJECT_DIR"

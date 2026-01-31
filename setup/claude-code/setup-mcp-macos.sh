@@ -6,35 +6,35 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 CONFIG_FILE="$HOME/.claude.json"
 
-echo "🧠 Setting up Memory for AI MCP Server for Claude Code (macOS)"
-echo "=================================================="
+echo "Setting up Yaade for Claude Code (macOS)"
+echo "========================================="
 
 if ! command -v uv &> /dev/null; then
-    echo "❌ UV is not installed. Please install UV first:"
+    echo "UV is not installed. Please install UV first:"
     echo "   curl -LsSf https://astral.sh/uv/install.sh | sh"
     exit 1
 fi
 
-echo "✅ UV found"
+echo "UV found"
 
 cd "$PROJECT_ROOT"
 
-echo "📦 Installing dependencies..."
+echo "Installing dependencies..."
 uv sync
 
-echo "📁 Checking Claude Code config file..."
+echo "Checking Claude Code config file..."
 
-echo "⚙️  Configuring MCP server..."
+echo "Configuring MCP server..."
 
 # Check if config file exists and has mcpServers section
 if [ -f "$CONFIG_FILE" ]; then
-    echo "📝 Existing config found, updating..."
+    echo "Existing config found, updating..."
     # Create a backup
     cp "$CONFIG_FILE" "$CONFIG_FILE.backup"
 
     # Check if mcpServers section exists
     if grep -q '"mcpServers"' "$CONFIG_FILE"; then
-        # Add memory-for-ai to existing mcpServers section
+        # Add yaade to existing mcpServers section
         python3 -c "
 import json
 import sys
@@ -46,10 +46,10 @@ try:
     if 'mcpServers' not in config:
         config['mcpServers'] = {}
 
-    config['mcpServers']['memory-for-ai'] = {
+    config['mcpServers']['yaade'] = {
         'type': 'stdio',
         'command': 'uv',
-        'args': ['run', 'memory-server'],
+        'args': ['run', 'yaade', 'serve'],
         'cwd': '$PROJECT_ROOT',
         'env': {}
     }
@@ -57,9 +57,9 @@ try:
     with open('$CONFIG_FILE', 'w') as f:
         json.dump(config, f, indent=2)
 
-    print('✅ Updated existing config')
+    print('Updated existing config')
 except Exception as e:
-    print(f'❌ Error updating config: {e}')
+    print(f'Error updating config: {e}')
     sys.exit(1)
 "
     else
@@ -73,10 +73,10 @@ try:
         config = json.load(f)
 
     config['mcpServers'] = {
-        'memory-for-ai': {
+        'yaade': {
             'type': 'stdio',
             'command': 'uv',
-            'args': ['run', 'memory-server'],
+            'args': ['run', 'yaade', 'serve'],
             'cwd': '$PROJECT_ROOT',
             'env': {}
         }
@@ -85,21 +85,21 @@ try:
     with open('$CONFIG_FILE', 'w') as f:
         json.dump(config, f, indent=2)
 
-    print('✅ Added mcpServers section to existing config')
+    print('Added mcpServers section to existing config')
 except Exception as e:
-    print(f'❌ Error updating config: {e}')
+    print(f'Error updating config: {e}')
     sys.exit(1)
 "
     fi
 else
-    echo "📝 Creating new config file..."
+    echo "Creating new config file..."
     cat > "$CONFIG_FILE" << EOF
 {
   "mcpServers": {
-    "memory-for-ai": {
+    "yaade": {
       "type": "stdio",
       "command": "uv",
-      "args": ["run", "memory-server"],
+      "args": ["run", "yaade", "serve"],
       "cwd": "$PROJECT_ROOT",
       "env": {}
     }
@@ -108,16 +108,16 @@ else
 EOF
 fi
 
-echo "✅ Setup complete!"
+echo "Setup complete!"
 echo ""
-echo "📋 Configuration details:"
+echo "Configuration details:"
 echo "   Config file: $CONFIG_FILE"
 echo "   Project root: $PROJECT_ROOT"
 echo ""
-echo "🚀 To use the Memory for AI server:"
+echo "To use Yaade:"
 echo "   1. Restart Claude Code if it's running"
-echo "   2. The MCP server will be available as 'memory-for-ai'"
+echo "   2. The MCP server will be available as 'yaade'"
 echo "   3. Use tools like add_memory, search_memories, etc."
 echo ""
-echo "🔧 To test the server manually:"
-echo "   cd '$PROJECT_ROOT' && uv run memory-server"
+echo "To test the server manually:"
+echo "   cd '$PROJECT_ROOT' && uv run yaade serve"
