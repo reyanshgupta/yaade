@@ -1,9 +1,9 @@
-"""Main FastMCP server implementation for memory server."""
+"""Main FastMCP server implementation for Yaade."""
 
 from mcp.server import FastMCP
 from mcp.server.fastmcp import Context
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, List, Dict, Any, Optional
+from typing import AsyncIterator, List, Dict, Any, Optional, cast
 import asyncio
 import logging
 from pathlib import Path
@@ -74,13 +74,13 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
     try:
         yield context
     finally:
-        logger.info("Shutting down memory server...")
+        logger.info("Shutting down Yaade...")
         _app_context = None
         # Cleanup resources if needed
 
 
 # Initialize FastMCP server with lifespan management
-mcp = FastMCP("Memory Server", lifespan=app_lifespan)
+mcp = FastMCP("Yaade", lifespan=app_lifespan)
 
 
 @mcp.tool()
@@ -173,6 +173,7 @@ async def add_memory(
         }
     
     # Create memory object
+    # Since we're passing a single string to encode_text, we get List[float]
     memory = Memory(
         id=str(uuid.uuid4()),
         content=content,
@@ -181,7 +182,7 @@ async def add_memory(
         tags=tags,
         importance=importance,
         metadata=metadata,
-        embedding=embedding,
+        embedding=cast(List[float], embedding),
         updated_at=None
     )
     
@@ -472,15 +473,15 @@ async def execute_memory_cleanup(
 
 
 def main():
-    """Main entry point for the memory server."""
+    """Main entry point for the Yaade MCP server."""
     # Log startup info to stderr (stdout is reserved for MCP JSON-RPC)
-    logger.info("🧠 Starting Memory Server...")
-    logger.info("📋 Server Information:")
-    logger.info("   - Name: Memory Server")
+    logger.info("Starting Yaade...")
+    logger.info("Server Information:")
+    logger.info("   - Name: Yaade")
     logger.info("   - Version: 0.1.0")
     logger.info("   - Protocol: MCP (Model Context Protocol)")
     logger.info("   - Transport: stdio (Claude Desktop compatible)")
-    logger.info("🔧 Available Tools:")
+    logger.info("Available Tools:")
     logger.info("   - health_check - Check server status")
     logger.info("   - add_memory - Store new memory with embedding")
     logger.info("   - search_memories - Semantic search across memories")
@@ -488,11 +489,11 @@ def main():
     logger.info("   - delete_memory - Remove memory from storage")
     logger.info("   - analyze_memory_cleanup - Analyze memories for cleanup opportunities")
     logger.info("   - execute_memory_cleanup - Execute cleanup actions with confirmation")
-    logger.info("📚 Storage Backend:")
+    logger.info("Storage Backend:")
     logger.info("   - Vector Store: ChromaDB (semantic search)")
     logger.info("   - Embeddings: sentence-transformers (all-MiniLM-L6-v2)")
-    logger.info("   - Data Location: .memory-server/")
-    logger.info("✅ Memory Server ready for MCP connections!")
+    logger.info("   - Data Location: .yaade/")
+    logger.info("Yaade ready for MCP connections!")
     
     # Run the server
     mcp.run()

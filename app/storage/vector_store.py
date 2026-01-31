@@ -2,7 +2,8 @@
 
 import chromadb
 from chromadb.config import Settings
-from typing import List, Optional, Dict, Any
+from chromadb.api.types import QueryResult, GetResult
+from typing import List, Optional, Dict, Any, cast
 import logging
 from ..models.memory import Memory
 
@@ -85,7 +86,7 @@ class VectorStore:
         )
         
         logger.info(f"Vector search returned {len(results['ids'][0])} results")
-        return results
+        return cast(Dict[str, List[Any]], results)
 
     async def get_memory_by_id(self, memory_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a specific memory by ID.
@@ -104,12 +105,16 @@ class VectorStore:
             
             if not results["ids"]:
                 return None
-                
+            
+            documents = results.get("documents")
+            metadatas = results.get("metadatas")
+            embeddings = results.get("embeddings")
+            
             return {
                 "id": results["ids"][0],
-                "content": results["documents"][0],
-                "metadata": results["metadatas"][0],
-                "embedding": results["embeddings"][0] if results["embeddings"] else None
+                "content": documents[0] if documents else None,
+                "metadata": metadatas[0] if metadatas else None,
+                "embedding": embeddings[0] if embeddings else None
             }
         except Exception as e:
             logger.error(f"Error retrieving memory {memory_id}: {e}")
@@ -154,7 +159,7 @@ class VectorStore:
 
     async def count_memories(self) -> int:
         """Get total count of memories in the store.
-        
+
         Returns:
             Number of memories
         """
@@ -164,3 +169,23 @@ class VectorStore:
         except Exception as e:
             logger.error(f"Error counting memories: {e}")
             return 0
+
+    async def get_all_memories(self, limit: Optional[int] = None) -> Dict[str, List[Any]]:
+        """Get all memories from the store.
+
+        Args:
+            limit: Optional maximum number of memories to return
+
+        Returns:
+            Dictionary with all memories
+        """
+        try:
+            results = self.collection.get(
+                limit=limit,
+                include=["metadatas", "documents"]
+            )
+            logger.info(f"Retrieved {len(results['ids'])} memories")
+            return cast(Dict[str, List[Any]], results)
+        except Exception as e:
+            logger.error(f"Error getting all memories: {e}")
+            return {"ids": [], "documents": [], "metadatas": []}

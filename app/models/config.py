@@ -1,4 +1,4 @@
-"""Configuration models for the memory server."""
+"""Configuration models for Yaade."""
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -12,7 +12,7 @@ class ServerConfig(BaseSettings):
     
     # Storage configuration with inline defaults
     data_dir: Path = Field(
-        default=Path(".memory-server"),
+        default=Path(".yaade"),
         description="Base directory for data storage"
     )
     
@@ -53,7 +53,7 @@ class ServerConfig(BaseSettings):
         return self.data_dir / "metadata.db"
 
     model_config = SettingsConfigDict(
-        env_prefix="MEMORY_SERVER_",
+        env_prefix="YAADE_",
         env_file=".env",
         extra="ignore"
     )

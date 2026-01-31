@@ -1,12 +1,13 @@
 # Project Specific
 .plans/
-.memory-server/
+.yaade/
 .DS_Store
 changelog.md
 .cursor/
 tempCodeRunnerFile.sh
 .cursorignore
-.cursorindexingignore.memory-server/
+.cursorindexingignore.yaade/
+.claude/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -188,4 +189,4 @@ cython_debug/
 #  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
-.cursorindexingignore.memory-server/
+.cursorindexingignore.yaade/
