@@ -31,10 +31,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-username/yaade"
-Repository = "https://github.com/your-username/yaade"
-Issues = "https://github.com/your-username/yaade/issues"
-Documentation = "https://github.com/your-username/yaade/wiki"
+Homepage = "https://github.com/reyanshgupta/yaade"
+Repository = "https://github.com/reyanshgupta/yaade"
+Issues = "https://github.com/reyanshgupta/yaade/issues"
+Documentation = "https://github.com/reyanshgupta/yaade#readme"
 
 [project.scripts]
 yaade = "app.cli:main"
