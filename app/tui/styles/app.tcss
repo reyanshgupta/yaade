@@ -1,0 +1,78 @@
+/* Global app styles for Yaade TUI */
+
+Screen {
+    background: $background;
+}
+
+/* Header styling */
+Header {
+    background: $panel;
+    color: $primary;
+    text-style: bold;
+}
+
+/* Footer styling */
+Footer {
+    background: $panel;
+}
+
+Footer > .footer--key {
+    background: $primary;
+    color: $background;
+}
+
+Footer > .footer--description {
+    color: $secondary;
+}
+
+/* Global button styles */
+Button {
+    border: tall $primary;
+    color: $text;
+}
+
+Button:hover {
+    background: $primary 20%;
+    border: tall $secondary;
+}
+
+Button:focus {
+    text-style: bold reverse;
+}
+
+Button.-primary {
+    background: $primary;
+    color: $foreground;
+    border: tall $primary;
+    text-style: bold;
+}
+
+Button.-primary:hover {
+    background: $primary 80%;
+    border: tall $secondary;
+}
+
+Button.-error {
+    background: $error;
+    color: $foreground;
+    border: tall $error;
+    text-style: bold;
+}
+
+/* Global input styles */
+Input {
+    border: tall $primary;
+    background: $surface;
+}
+
+Input:focus {
+    border: tall $secondary;
+    background: $panel;
+}
+
+/* DataTable global styling */
+DataTable {
+    scrollbar-color: $primary;
+    scrollbar-color-hover: $secondary;
+    scrollbar-background: $surface;
+}

@@ -249,14 +249,6 @@ yaade/
 - Run `uv sync` to ensure dependencies are installed
 - Check that you're in the correct directory
 
-### Logs
-
-Server logs include:
-- Configuration loading
-- Embedding model initialization
-- Vector store setup
-- MCP tool calls and responses
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -270,5 +262,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [UV](https://docs.astral.sh/uv/) for package management
 
 ---
-
-**Made with memories for the AI community**

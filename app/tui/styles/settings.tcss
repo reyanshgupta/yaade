@@ -1,0 +1,289 @@
+/* Settings and Setup screen styles for Yaade TUI */
+
+/* === Shared Settings Styles === */
+
+.settings-dialog {
+    width: 80;
+    height: auto;
+    max-height: 90%;
+    border: double $primary;
+    background: $surface;
+    padding: 1;
+    overflow-y: auto;
+}
+
+.settings-title {
+    height: auto;
+    text-style: bold;
+    color: $primary;
+    text-align: center;
+    margin-bottom: 1;
+}
+
+.section {
+    height: auto;
+    width: 100%;
+    border: heavy $secondary;
+    background: $panel;
+    padding: 1;
+    margin-bottom: 1;
+}
+
+.section-title {
+    height: auto;
+    color: $primary;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.info-text {
+    height: auto;
+    color: $secondary;
+    margin-bottom: 1;
+}
+
+/* Welcome/onboarding text for first-run */
+.welcome-text {
+    height: auto;
+    color: $primary;
+    text-style: bold;
+    text-align: center;
+    margin-bottom: 2;
+}
+
+.onboarding-text {
+    height: auto;
+    color: $secondary;
+    text-align: center;
+    margin-bottom: 2;
+}
+
+/* Settings Label styling */
+.settings-dialog Label {
+    height: auto;
+    color: $secondary;
+}
+
+.section Label {
+    color: $secondary;
+}
+
+/* Settings Button styling */
+.settings-dialog Button {
+    height: auto;
+    margin: 0 1 1 1;
+}
+
+.settings-dialog Button.-default {
+    color: $secondary;
+    background: $surface;
+    border: tall $primary;
+}
+
+.settings-dialog Button.-primary {
+    color: $background;
+    background: $primary;
+    text-style: bold;
+}
+
+/* Button container */
+#buttons {
+    height: auto;
+    margin-top: 1;
+}
+
+/* Footer docked to bottom */
+.settings-dialog Footer {
+    dock: bottom;
+}
+
+
+/* === ThemeSelectScreen Specific === */
+
+ThemeSelectScreen {
+    align: center middle;
+}
+
+#theme-dialog {
+    width: 90;
+    height: 24;
+    border: double $primary;
+    background: $surface;
+    padding: 1;
+}
+
+#theme-title {
+    height: auto;
+    text-style: bold;
+    color: $primary;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 1;
+}
+
+#theme-content {
+    height: 1fr;
+}
+
+#theme-list-container {
+    width: 30;
+    height: 100%;
+    border: heavy $primary;
+    padding: 0 1;
+    background: $panel;
+}
+
+#theme-list {
+    height: 100%;
+    background: $panel;
+}
+
+#preview-container {
+    width: 1fr;
+    height: 100%;
+    border: heavy $secondary;
+    padding: 1;
+    margin-left: 1;
+    background: $panel;
+}
+
+#preview-title {
+    height: auto;
+    text-style: bold;
+    color: $primary;
+    margin-bottom: 1;
+}
+
+#theme-description {
+    height: auto;
+    color: $secondary;
+    text-style: italic;
+    margin-bottom: 1;
+}
+
+.preview-section {
+    height: auto;
+    margin-bottom: 1;
+}
+
+.preview-section Label {
+    height: auto;
+    color: $text;
+}
+
+.preview-label {
+    color: $text-muted;
+}
+
+#color-swatches {
+    height: 1;
+    margin-bottom: 1;
+}
+
+.swatch {
+    width: 8;
+    height: 1;
+    margin-right: 1;
+    content-align: center middle;
+}
+
+#swatch-primary {
+    background: $primary;
+    color: #0a0a12;
+}
+
+#swatch-secondary {
+    background: $secondary;
+    color: #0a0a12;
+}
+
+#swatch-accent {
+    background: $accent;
+    color: #0a0a12;
+}
+
+#swatch-success {
+    background: $success;
+    color: #0a0a12;
+}
+
+#swatch-error {
+    background: $error;
+    color: #0a0a12;
+}
+
+#preview-table {
+    height: 4;
+    margin-bottom: 1;
+    border: solid $primary;
+}
+
+#preview-buttons {
+    height: auto;
+}
+
+#preview-buttons Button {
+    height: auto;
+    margin-right: 1;
+}
+
+#preview-buttons Button.-primary {
+    background: $primary;
+}
+
+#preview-buttons Button.-primary > .button--label {
+    color: $foreground;
+    text-style: bold;
+}
+
+#preview-buttons Button.-default {
+    background: $panel;
+    border: tall $primary;
+}
+
+#preview-buttons Button.-default > .button--label {
+    color: $text;
+}
+
+#preview-buttons Button.-error {
+    background: $error;
+}
+
+#preview-buttons Button.-error > .button--label {
+    color: $foreground;
+    text-style: bold;
+}
+
+ThemeSelectScreen #buttons Button {
+    height: 3;
+    margin: 0 1;
+    min-width: 16;
+}
+
+#apply {
+    background: $success;
+}
+
+#apply > .button--label {
+    color: $foreground;
+    text-style: bold;
+}
+
+#cancel {
+    background: $panel;
+    border: tall $primary;
+}
+
+#cancel > .button--label {
+    color: $text;
+}
+
+OptionList:focus {
+    border: tall $accent;
+}
+
+OptionList > .option-list--option-highlighted {
+    background: $primary;
+    color: #0a0a12;
+    text-style: bold;
+}
