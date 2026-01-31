@@ -3,7 +3,7 @@
 from mcp.server import FastMCP
 from mcp.server.fastmcp import Context
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, List, Dict, Any, Optional
+from typing import AsyncIterator, List, Dict, Any, Optional, cast
 import asyncio
 import logging
 from pathlib import Path
@@ -173,6 +173,7 @@ async def add_memory(
         }
     
     # Create memory object
+    # Since we're passing a single string to encode_text, we get List[float]
     memory = Memory(
         id=str(uuid.uuid4()),
         content=content,
@@ -181,7 +182,7 @@ async def add_memory(
         tags=tags,
         importance=importance,
         metadata=metadata,
-        embedding=embedding,
+        embedding=cast(List[float], embedding),
         updated_at=None
     )
     

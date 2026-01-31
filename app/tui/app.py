@@ -6,16 +6,27 @@ from textual.widgets import Header, Footer, Static, Input, Button, DataTable, La
 from textual.binding import Binding
 from textual.screen import Screen, ModalScreen
 from textual import on
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple, TYPE_CHECKING, cast
 import asyncio
 import os
 from pathlib import Path
 
 from .memory_manager import MemoryManager
-from .settings import SettingsScreen
+from .settings import SettingsScreen, ThemeSelectScreen
+from .themes import CUSTOM_THEMES
+
+# Type alias for add memory result
+AddMemoryResult = Tuple[str, List[str], float]
+# Type alias for edit memory result  
+EditMemoryResult = Tuple[str, str, List[str], float]
+
+if TYPE_CHECKING:
+    from typing import TypeAlias
+    # Forward reference for type checking only
+    YaadeType: TypeAlias = "Yaade"
 
 
-class AddMemoryScreen(ModalScreen[bool]):
+class AddMemoryScreen(ModalScreen[Optional[AddMemoryResult]]):
     """Modal screen for adding a new memory."""
 
     CSS = """
@@ -26,9 +37,19 @@ class AddMemoryScreen(ModalScreen[bool]):
     #dialog {
         width: 80;
         height: auto;
-        border: thick $background 80%;
+        border: double $primary;
         background: $surface;
         padding: 1;
+    }
+
+    #title {
+        text-style: bold;
+        color: $primary;
+        margin-bottom: 1;
+    }
+
+    Label {
+        color: $secondary;
     }
 
     #buttons {
@@ -44,8 +65,14 @@ class AddMemoryScreen(ModalScreen[bool]):
         text-style: bold reverse;
     }
 
+    Input {
+        border: tall $primary;
+        background: $panel;
+    }
+
     Input:focus {
-        border: tall $accent;
+        border: tall $secondary;
+        background: $surface;
     }
     """
 
@@ -57,7 +84,7 @@ class AddMemoryScreen(ModalScreen[bool]):
     def compose(self) -> ComposeResult:
         """Compose the add memory dialog."""
         with Container(id="dialog"):
-            yield Label("Add New Memory", id="title")
+            yield Label("[ ADD NEW MEMORY ]", id="title")
             yield Label("Content:")
             yield Input(placeholder="Enter memory content...", id="content")
             yield Label("Tags (comma-separated):")
@@ -65,8 +92,8 @@ class AddMemoryScreen(ModalScreen[bool]):
             yield Label("Importance (0-10):")
             yield Input(placeholder="1.0", id="importance", value="1.0")
             with Horizontal(id="buttons"):
-                yield Button("Add", variant="primary", id="add")
-                yield Button("Cancel", variant="default", id="cancel")
+                yield Button("[ ADD ]", variant="primary", id="add")
+                yield Button("[ CANCEL ]", variant="default", id="cancel")
 
     def on_mount(self) -> None:
         """Set initial focus on content input."""
@@ -110,7 +137,7 @@ class AddMemoryScreen(ModalScreen[bool]):
         self.handle_cancel()
 
 
-class EditMemoryScreen(ModalScreen[bool]):
+class EditMemoryScreen(ModalScreen[Optional[EditMemoryResult]]):
     """Modal screen for editing an existing memory."""
 
     CSS = """
@@ -121,9 +148,24 @@ class EditMemoryScreen(ModalScreen[bool]):
     #dialog {
         width: 80;
         height: auto;
-        border: thick $background 80%;
+        border: double $primary;
         background: $surface;
         padding: 1;
+    }
+
+    #title {
+        text-style: bold;
+        color: $primary;
+        margin-bottom: 1;
+    }
+
+    Label {
+        color: $secondary;
+    }
+
+    #memory-id {
+        color: $text-muted;
+        text-style: italic;
     }
 
     #buttons {
@@ -139,8 +181,14 @@ class EditMemoryScreen(ModalScreen[bool]):
         text-style: bold reverse;
     }
 
+    Input {
+        border: tall $primary;
+        background: $panel;
+    }
+
     Input:focus {
-        border: tall $accent;
+        border: tall $secondary;
+        background: $surface;
     }
     """
 
@@ -164,8 +212,8 @@ class EditMemoryScreen(ModalScreen[bool]):
         importance = metadata.get("importance", 1.0)
 
         with Container(id="dialog"):
-            yield Label("Edit Memory", id="title")
-            yield Label(f"ID: {self.memory['memory_id'][:8]}...")
+            yield Label("[ EDIT MEMORY ]", id="title")
+            yield Label(f"ID: {self.memory['memory_id'][:8]}...", id="memory-id")
             yield Label("Content:")
             yield Input(
                 value=self.memory.get("content", ""),
@@ -184,8 +232,8 @@ class EditMemoryScreen(ModalScreen[bool]):
                 id="importance"
             )
             with Horizontal(id="buttons"):
-                yield Button("Save", variant="primary", id="save")
-                yield Button("Cancel", variant="default", id="cancel")
+                yield Button("[ SAVE ]", variant="primary", id="save")
+                yield Button("[ CANCEL ]", variant="default", id="cancel")
 
     def on_mount(self) -> None:
         """Set initial focus on content input."""
@@ -229,7 +277,7 @@ class EditMemoryScreen(ModalScreen[bool]):
         self.handle_cancel()
 
 
-class MainMenuScreen(Screen):
+class MainMenuScreen(Screen["Yaade"]):
     """Main menu screen for the application."""
 
     CSS = """
@@ -238,61 +286,26 @@ class MainMenuScreen(Screen):
     }
 
     #main-container {
-        width: 70;
+        width: 50;
         height: auto;
         background: $surface;
+        border: heavy $primary;
         padding: 1 2;
     }
 
-    #logo-container {
-        width: 100%;
-        height: auto;
-        content-align: center middle;
-        padding: 1 0;
-    }
-
     #logo {
+        color: $primary;
+        text-style: bold;
         text-align: center;
-        color: $accent;
+        width: 100%;
     }
 
     #tagline {
+        color: $secondary;
+        text-style: italic;
         text-align: center;
-        color: $text-muted;
-        margin-bottom: 1;
-    }
-
-    #stats-container {
         width: 100%;
-        height: auto;
-        border: solid $primary;
-        padding: 1;
         margin-bottom: 1;
-    }
-
-    #stats-title {
-        text-style: bold;
-        color: $accent;
-        margin-bottom: 1;
-    }
-
-    .stat-row {
-        height: auto;
-    }
-
-    .stat-label {
-        color: $text-muted;
-        width: 20;
-    }
-
-    .stat-value {
-        color: $text;
-    }
-
-    #menu-section {
-        width: 100%;
-        height: auto;
-        padding: 1 0;
     }
 
     .menu-button {
@@ -300,13 +313,10 @@ class MainMenuScreen(Screen):
         margin-bottom: 1;
     }
 
-    .menu-button:focus {
-        text-style: bold reverse;
-    }
-
     #footer-text {
-        text-align: center;
         color: $text-muted;
+        text-align: center;
+        width: 100%;
         margin-top: 1;
     }
     """
@@ -314,7 +324,7 @@ class MainMenuScreen(Screen):
     BINDINGS = [
         Binding("up,k", "focus_previous", "Up", show=False),
         Binding("down,j", "focus_next", "Down", show=False),
-        Binding("1", "memory_management", "Memory Management"),
+        Binding("1", "memory_management", "Memories"),
         Binding("2", "settings", "Settings"),
         Binding("q", "quit", "Quit"),
     ]
@@ -324,65 +334,22 @@ class MainMenuScreen(Screen):
         yield Header()
         with Center():
             with Container(id="main-container"):
-                # Logo section
-                with Container(id="logo-container"):
-                    yield Static(
-                        """
-╦ ╦┌─┐┌─┐┌┬┐┌─┐
-╚╦╝├─┤├─┤ ││├┤ 
- ╩ ┴ ┴┴ ┴─┴┘└─┘
-        """.strip(),
-                        id="logo"
-                    )
-                    yield Label("Memory Storage for AI", id="tagline")
-
-                # Stats section
-                with Container(id="stats-container"):
-                    yield Label("Quick Stats", id="stats-title")
-                    with Horizontal(classes="stat-row"):
-                        yield Label("Memories:", classes="stat-label")
-                        yield Label("Loading...", id="stat-memories", classes="stat-value")
-                    with Horizontal(classes="stat-row"):
-                        yield Label("Storage:", classes="stat-label")
-                        yield Label("Loading...", id="stat-storage", classes="stat-value")
-                    with Horizontal(classes="stat-row"):
-                        yield Label("Status:", classes="stat-label")
-                        yield Label("Ready", id="stat-status", classes="stat-value")
-
-                # Menu buttons
-                with Container(id="menu-section"):
-                    yield Button("Memories [1]", id="memory_mgmt", classes="menu-button", variant="primary")
-                    yield Button("Settings [2]", id="settings", classes="menu-button", variant="default")
-                    yield Button("Quit [Q]", id="quit", classes="menu-button", variant="error")
-
+                yield Static("Y A A D E", id="logo")
+                yield Static("central memory for all your AI tools", id="tagline")
+                yield Button("[1] Memories", id="memory_mgmt", classes="menu-button", variant="primary")
+                yield Button("[2] Settings", id="settings", classes="menu-button", variant="default")
+                yield Button("[Q] Exit", id="quit", classes="menu-button", variant="error")
                 yield Label("v0.1.0", id="footer-text")
         yield Footer()
 
-    async def on_mount(self) -> None:
-        """Set initial focus and load stats."""
+    def on_mount(self) -> None:
+        """Set initial focus."""
         self.query_one("#memory_mgmt", Button).focus()
-        await self._load_stats()
 
-    async def on_screen_resume(self) -> None:
-        """Refresh the screen and restore focus when it becomes visible again."""
+    def on_screen_resume(self) -> None:
+        """Restore focus when returning to this screen."""
         self.refresh(layout=True)
         self.query_one("#memory_mgmt", Button).focus()
-        await self._load_stats()
-
-    async def _load_stats(self) -> None:
-        """Load and display statistics."""
-        try:
-            stats = await self.app.manager.get_stats()
-            
-            memories_label = self.query_one("#stat-memories", Label)
-            storage_label = self.query_one("#stat-storage", Label)
-            status_label = self.query_one("#stat-status", Label)
-            
-            memories_label.update(str(stats.get('total_memories', 0)))
-            storage_label.update(f"{stats.get('storage_location', 'N/A')} ({stats.get('storage_size', 'N/A')})")
-            status_label.update("Ready")
-        except Exception:
-            pass
 
     def action_focus_previous(self) -> None:
         """Move focus to previous button."""
@@ -413,35 +380,64 @@ class MainMenuScreen(Screen):
 
     def action_settings(self) -> None:
         """Show settings dialog."""
-        self.app.push_screen(SettingsScreen(self.app._get_config_data()))
+        app = cast("Yaade", self.app)
+        self.app.push_screen(SettingsScreen(app._get_config_data()))
 
     def action_quit(self) -> None:
         """Quit the application."""
         self.app.exit()
 
 
-class MemoryManagementScreen(Screen):
+class MemoryManagementScreen(Screen["Yaade"]):
     """Screen for memory management operations."""
 
     CSS = """
+    MemoryManagementScreen {
+        background: $background;
+    }
+
+    #main-content {
+        height: 1fr;
+    }
+
     #stats {
-        height: 4;
-        background: $boost;
+        height: auto;
+        background: $panel;
+        border-bottom: heavy $primary;
         padding: 1;
+        color: $secondary;
     }
 
     #memories {
         height: 1fr;
-        border: solid $primary;
+        border: double $primary;
+        background: $surface;
+    }
+
+    #memories-container {
+        height: 1fr;
+        padding: 1;
     }
 
     DataTable {
         height: 100%;
+        background: $surface;
+    }
+
+    DataTable > .datatable--header {
+        background: $panel;
+        color: $primary;
+        text-style: bold;
     }
 
     DataTable > .datatable--cursor {
-        background: $accent;
-        color: $text;
+        background: $primary;
+        color: $background;
+        text-style: bold;
+    }
+
+    DataTable > .datatable--hover {
+        background: $secondary 30%;
     }
     """
 
@@ -454,6 +450,7 @@ class MemoryManagementScreen(Screen):
         Binding("d", "delete_memory", "Delete"),
         Binding("r", "refresh", "Refresh"),
         Binding("s", "settings", "Settings"),
+        Binding("ctrl+p", "open_theme", "Theme"),
         Binding("escape", "back", "Back to Menu"),
         Binding("q", "quit", "Quit"),
     ]
@@ -466,13 +463,10 @@ class MemoryManagementScreen(Screen):
     def compose(self) -> ComposeResult:
         """Compose the memory management screen."""
         yield Header()
-        yield Container(
-            Static("Loading statistics...", id="stats"),
-            Container(
-                DataTable(id="memories"),
-                id="memories-container"
-            )
-        )
+        with Vertical(id="main-content"):
+            yield Static("Loading statistics...", id="stats")
+            with Container(id="memories-container"):
+                yield DataTable(id="memories")
         yield Footer()
 
     async def on_mount(self) -> None:
@@ -501,7 +495,8 @@ class MemoryManagementScreen(Screen):
 
     async def refresh_stats(self) -> None:
         """Refresh the statistics display."""
-        stats = await self.app.manager.get_stats()
+        app = cast("Yaade", self.app)
+        stats = await app.manager.get_stats()
         stats_widget = self.query_one("#stats", Static)
         stats_widget.update(
             f"Total Memories: {stats.get('total_memories', 0)} | "
@@ -515,7 +510,8 @@ class MemoryManagementScreen(Screen):
         table.clear()
 
         # Always list all memories (search removed)
-        self.memories = await self.app.manager.list_all_memories(limit=50)
+        app = cast("Yaade", self.app)
+        self.memories = await app.manager.list_all_memories(limit=50)
 
         for memory in self.memories:
             metadata = memory.get("metadata", {})
@@ -541,15 +537,16 @@ class MemoryManagementScreen(Screen):
         """Show add memory dialog."""
         self.app.push_screen(AddMemoryScreen(), self.handle_add_memory)
 
-    async def handle_add_memory(self, result: Optional[tuple]) -> None:
+    async def handle_add_memory(self, result: Optional[AddMemoryResult]) -> None:
         """Handle add memory result."""
         if result is None:
             return
 
         content, tags, importance = result
 
+        app = cast("Yaade", self.app)
         self.app.notify("Adding memory...")
-        response = await self.app.manager.add_memory(
+        response = await app.manager.add_memory(
             content=content,
             tags=tags,
             importance=importance
@@ -572,15 +569,16 @@ class MemoryManagementScreen(Screen):
         memory = self.memories[table.cursor_row]
         self.app.push_screen(EditMemoryScreen(memory), self.handle_edit_memory)
 
-    async def handle_edit_memory(self, result: Optional[tuple]) -> None:
+    async def handle_edit_memory(self, result: Optional[EditMemoryResult]) -> None:
         """Handle edit memory result."""
         if result is None:
             return
 
         memory_id, content, tags, importance = result
 
+        app = cast("Yaade", self.app)
         self.app.notify("Updating memory...")
-        response = await self.app.manager.update_memory(
+        response = await app.manager.update_memory(
             memory_id=memory_id,
             content=content,
             tags=tags,
@@ -604,8 +602,9 @@ class MemoryManagementScreen(Screen):
         memory = self.memories[table.cursor_row]
         memory_id = memory["memory_id"]
 
+        app = cast("Yaade", self.app)
         self.app.notify("Deleting memory...")
-        response = await self.app.manager.delete_memory(memory_id)
+        response = await app.manager.delete_memory(memory_id)
 
         if response.get("status") == "deleted":
             self.app.notify("Memory deleted successfully", severity="information")
@@ -620,7 +619,21 @@ class MemoryManagementScreen(Screen):
 
     def action_settings(self) -> None:
         """Show settings dialog."""
-        self.app.push_screen(SettingsScreen(self.app._get_config_data()))
+        app = cast("Yaade", self.app)
+        self.app.push_screen(SettingsScreen(app._get_config_data()))
+
+    def action_open_theme(self) -> None:
+        """Open theme selector (ctrl+p)."""
+        app = cast("Yaade", self.app)
+        current_theme = app.theme or 'cyberpunk'
+
+        def callback(new_theme: Optional[str]) -> None:
+            if new_theme is not None:
+                app.theme = new_theme
+                app._save_theme(new_theme)
+                app.notify(f"Theme changed to: {new_theme}", severity="information")
+
+        self.app.push_screen(ThemeSelectScreen(current_theme), callback)
 
     def action_back(self) -> None:
         """Return to main menu."""
@@ -631,12 +644,91 @@ class MemoryManagementScreen(Screen):
         self.app.exit()
 
 
-class MemoryTUI(App):
+class Yaade(App):
     """A Textual TUI for memory management."""
+
+    TITLE = "yaade"
+    ENABLE_COMMAND_PALETTE = False  # Disable built-in command palette
+
+    BINDINGS = [
+        Binding("ctrl+p", "open_theme_selector", "Themes", show=False),
+    ]
 
     CSS = """
     Screen {
         background: $background;
+    }
+
+    /* Global cyberpunk styling enhancements */
+    Header {
+        background: $panel;
+        color: $primary;
+        text-style: bold;
+    }
+
+    Footer {
+        background: $panel;
+    }
+
+    Footer > .footer--key {
+        background: $primary;
+        color: $background;
+    }
+
+    Footer > .footer--description {
+        color: $secondary;
+    }
+
+    /* Button styling */
+    Button {
+        border: tall $primary;
+        color: $text;
+    }
+
+    Button:hover {
+        background: $primary 20%;
+        border: tall $secondary;
+    }
+
+    Button:focus {
+        text-style: bold reverse;
+    }
+
+    Button.-primary {
+        background: $primary;
+        color: #0a0a12;
+        border: tall $primary;
+        text-style: bold;
+    }
+
+    Button.-primary:hover {
+        background: $primary 80%;
+        border: tall $secondary;
+    }
+
+    Button.-error {
+        background: $error;
+        color: #0a0a12;
+        border: tall $error;
+        text-style: bold;
+    }
+
+    /* Input styling */
+    Input {
+        border: tall $primary;
+        background: $surface;
+    }
+
+    Input:focus {
+        border: tall $secondary;
+        background: $panel;
+    }
+
+    /* DataTable global styling */
+    DataTable {
+        scrollbar-color: $primary;
+        scrollbar-color-hover: $secondary;
+        scrollbar-background: $surface;
     }
     """
 
@@ -660,7 +752,7 @@ class MemoryTUI(App):
         """Load theme from .env file.
 
         Returns:
-            Theme name, defaults to 'textual-dark'
+            Theme name, defaults to 'cyberpunk'
         """
         env_path = Path.cwd() / '.env'
         if env_path.exists():
@@ -672,10 +764,14 @@ class MemoryTUI(App):
                             return line.strip().split('=', 1)[1]
             except Exception:
                 pass
-        return 'textual-dark'
+        return 'cyberpunk'  # Default to cyberpunk theme
 
     def on_mount(self) -> None:
         """Handle app mount event."""
+        # Register custom themes
+        for theme in CUSTOM_THEMES:
+            self.register_theme(theme)
+
         # Apply saved theme
         self.theme = self._saved_theme
 
@@ -697,6 +793,39 @@ class MemoryTUI(App):
             'port': self.manager.config.port,
             'theme': self.theme or 'textual-dark',
         }
+
+    def action_open_theme_selector(self) -> None:
+        """Open the theme selector with live preview."""
+        current_theme = self.theme or 'cyberpunk'
+        self.push_screen(ThemeSelectScreen(current_theme), self._handle_theme_change)
+
+    def _handle_theme_change(self, new_theme: Optional[str]) -> None:
+        """Handle theme selection result."""
+        if new_theme is not None:
+            self._save_theme(new_theme)
+
+    def _save_theme(self, theme: str) -> None:
+        """Save theme to .env file."""
+        env_path = Path.cwd() / '.env'
+        env_lines = []
+        if env_path.exists():
+            with open(env_path, 'r') as f:
+                env_lines = f.readlines()
+
+        found = False
+        for i, line in enumerate(env_lines):
+            if line.startswith('YAADE_THEME='):
+                env_lines[i] = f'YAADE_THEME={theme}\n'
+                found = True
+                break
+
+        if not found:
+            env_lines.append(f'YAADE_THEME={theme}\n')
+
+        with open(env_path, 'w') as f:
+            f.writelines(env_lines)
+
+        self.notify(f"Theme changed to: {theme}", severity="information")
 
     @staticmethod
     def _check_first_run() -> bool:
@@ -735,11 +864,11 @@ class MemoryTUI(App):
         # No setup found
         return True
 
-    def _handle_first_run_complete(self, result: bool) -> None:
+    def _handle_first_run_complete(self, result: Optional[bool]) -> None:
         """Handle completion of first-time setup.
 
         Args:
-            result: True if setup completed, False if cancelled
+            result: True if setup completed, False/None if cancelled
         """
         if result:
             # Setup completed, show main menu first, then memory management
@@ -753,5 +882,5 @@ class MemoryTUI(App):
 
 def run_tui() -> None:
     """Run the TUI application."""
-    app = MemoryTUI()
+    app = Yaade()
     app.run()

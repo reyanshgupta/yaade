@@ -9,7 +9,7 @@ from typing import Optional, List
 
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical, Horizontal, VerticalScroll, Grid
-from textual.widgets import Label, Button, Input, Static, Select, DataTable, OptionList
+from textual.widgets import Label, Button, Input, Static, Select, DataTable, OptionList, Footer
 from textual.widgets.option_list import Option
 from textual.screen import ModalScreen
 from textual import on
@@ -27,9 +27,15 @@ class StorageConfigScreen(ModalScreen[Optional[str]]):
     #dialog {
         width: 70;
         height: auto;
-        border: thick $background 80%;
+        border: double $primary;
         background: $surface;
         padding: 1;
+    }
+
+    #title {
+        text-style: bold;
+        color: $primary;
+        margin-bottom: 1;
     }
 
     #buttons {
@@ -45,12 +51,18 @@ class StorageConfigScreen(ModalScreen[Optional[str]]):
         text-style: bold reverse;
     }
 
+    Input {
+        border: tall $primary;
+        background: $panel;
+    }
+
     Input:focus {
-        border: tall $accent;
+        border: tall $secondary;
+        background: $surface;
     }
 
     .help-text {
-        color: $text-muted;
+        color: $secondary;
         margin-bottom: 1;
     }
     """
@@ -130,14 +142,21 @@ class SetupResultScreen(ModalScreen[bool]):
     #dialog {
         width: 80;
         height: 30;
-        border: thick $background 80%;
+        border: double $primary;
         background: $surface;
         padding: 1;
     }
 
+    #title {
+        text-style: bold;
+        color: $primary;
+        margin-bottom: 1;
+    }
+
     #output {
         height: 1fr;
-        border: solid $primary;
+        border: heavy $secondary;
+        background: $panel;
         margin-bottom: 1;
     }
 
@@ -192,8 +211,13 @@ class SetupResultScreen(ModalScreen[bool]):
 class ThemeSelectScreen(ModalScreen[Optional[str]]):
     """Modal screen for selecting app theme with live preview."""
 
-    # Available Textual themes
+    # Available themes - Custom themes first, then built-in Textual themes
     THEMES = [
+        # Custom cyberpunk themes
+        ("cyberpunk", "Cyberpunk (Neon)"),
+        ("cyberpunk-soft", "Cyberpunk Soft"),
+        ("neon-nights", "Neon Nights"),
+        # Built-in Textual themes
         ("textual-dark", "Textual Dark"),
         ("textual-light", "Textual Light"),
         ("nord", "Nord"),
@@ -207,17 +231,44 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
         ("solarized-dark", "Solarized Dark"),
     ]
 
+    # Theme descriptions for preview
+    THEME_DESCRIPTIONS = {
+        "cyberpunk": "Hot pink & electric cyan neons on dark blue-black",
+        "cyberpunk-soft": "Softer cyberpunk colors for extended use",
+        "neon-nights": "Vivid purple & bright teal with hot pink accents",
+        "textual-dark": "Default dark theme with blue accents",
+        "textual-light": "Clean light theme",
+        "nord": "Arctic, north-bluish color palette",
+        "gruvbox": "Retro groove colors with warm tones",
+        "catppuccin-mocha": "Soothing pastel dark theme",
+        "catppuccin-latte": "Soothing pastel light theme",
+        "dracula": "Dark theme with purple accents",
+        "monokai": "Iconic dark theme with vibrant colors",
+        "tokyo-night": "Clean dark theme inspired by Tokyo lights",
+        "solarized-light": "Precision colors for light backgrounds",
+        "solarized-dark": "Precision colors for dark backgrounds",
+    }
+
     CSS = """
     ThemeSelectScreen {
         align: center middle;
     }
 
     #dialog {
-        width: 90;
-        height: 28;
-        border: thick $background 80%;
+        width: 100;
+        height: 32;
+        border: double $primary;
         background: $surface;
         padding: 1;
+    }
+
+    #title {
+        height: auto;
+        text-style: bold;
+        color: $primary;
+        text-align: center;
+        width: 100%;
+        margin-bottom: 1;
     }
 
     #theme-content {
@@ -225,41 +276,96 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
     }
 
     #theme-list-container {
-        width: 30;
+        width: 35;
         height: 100%;
-        border: solid $primary;
+        border: heavy $primary;
         padding: 0 1;
+        background: $panel;
     }
 
     #theme-list {
         height: 100%;
+        background: $panel;
     }
 
     #preview-container {
         width: 1fr;
         height: 100%;
-        border: solid $primary;
+        border: heavy $secondary;
         padding: 1;
         margin-left: 1;
+        background: $panel;
     }
 
     #preview-title {
+        height: auto;
         text-style: bold;
-        color: $accent;
+        color: $primary;
+        margin-bottom: 1;
+    }
+
+    #theme-description {
+        height: auto;
+        color: $secondary;
+        text-style: italic;
         margin-bottom: 1;
     }
 
     .preview-section {
+        height: auto;
         margin-bottom: 1;
+    }
+
+    .preview-section Label {
+        height: auto;
+        color: $text;
     }
 
     .preview-label {
         color: $text-muted;
     }
 
-    #preview-table {
-        height: 6;
+    #color-swatches {
+        height: 3;
         margin-bottom: 1;
+    }
+
+    .swatch {
+        width: 8;
+        height: 1;
+        margin-right: 1;
+        content-align: center middle;
+    }
+
+    #swatch-primary {
+        background: $primary;
+        color: #0a0a12;
+    }
+
+    #swatch-secondary {
+        background: $secondary;
+        color: #0a0a12;
+    }
+
+    #swatch-accent {
+        background: $accent;
+        color: #0a0a12;
+    }
+
+    #swatch-success {
+        background: $success;
+        color: #0a0a12;
+    }
+
+    #swatch-error {
+        background: $error;
+        color: #0a0a12;
+    }
+
+    #preview-table {
+        height: 5;
+        margin-bottom: 1;
+        border: solid $primary;
     }
 
     #preview-buttons {
@@ -267,17 +373,49 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
     }
 
     #preview-buttons Button {
+        height: auto;
         margin-right: 1;
+    }
+
+    #preview-buttons Button.-primary {
+        background: $primary;
+        color: #0a0a12;
+        text-style: bold;
+    }
+
+    #preview-buttons Button.-default {
+        background: $surface;
+        color: $text;
+        border: tall $primary;
+    }
+
+    #preview-buttons Button.-error {
+        background: $error;
+        color: #0a0a12;
+        text-style: bold;
     }
 
     #buttons {
         height: auto;
         margin-top: 1;
-        dock: bottom;
     }
 
-    Button {
+    #buttons Button {
+        height: auto;
         margin: 0 1;
+        min-width: 16;
+    }
+
+    #apply {
+        background: $success;
+        color: #0a0a12;
+        text-style: bold;
+    }
+
+    #cancel {
+        background: $surface;
+        color: $text;
+        border: tall $primary;
     }
 
     Button:focus {
@@ -289,15 +427,20 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
     }
 
     OptionList > .option-list--option-highlighted {
-        background: $accent;
-        color: $text;
+        background: $primary;
+        color: #0a0a12;
+        text-style: bold;
+    }
+
+    Footer {
+        dock: bottom;
     }
     """
 
     BINDINGS = [
         Binding("up,k", "cursor_up", "Up", show=False),
         Binding("down,j", "cursor_down", "Down", show=False),
-        Binding("enter", "select_theme", "Select", show=False),
+        Binding("enter", "select_theme", "Apply"),
         Binding("escape", "cancel", "Cancel"),
     ]
 
@@ -309,8 +452,8 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
 
     def compose(self) -> ComposeResult:
         """Compose the theme selection dialog."""
-        with Container(id="dialog"):
-            yield Label("Select Theme", id="title")
+        with Vertical(id="dialog"):
+            yield Label("[ SELECT THEME ]", id="title")
 
             with Horizontal(id="theme-content"):
                 # Theme list on the left
@@ -322,7 +465,16 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
 
                 # Preview panel on the right
                 with Vertical(id="preview-container"):
-                    yield Label("Preview", id="preview-title")
+                    yield Label("LIVE PREVIEW", id="preview-title")
+                    yield Label("", id="theme-description")
+
+                    # Color swatches
+                    with Horizontal(id="color-swatches"):
+                        yield Static("PRIMARY", id="swatch-primary", classes="swatch")
+                        yield Static("SECOND", id="swatch-secondary", classes="swatch")
+                        yield Static("ACCENT", id="swatch-accent", classes="swatch")
+                        yield Static("OK", id="swatch-success", classes="swatch")
+                        yield Static("ERR", id="swatch-error", classes="swatch")
 
                     with Vertical(classes="preview-section"):
                         yield Label("Sample text in default color")
@@ -336,16 +488,17 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
                         yield Button("Error", variant="error")
 
             with Horizontal(id="buttons"):
-                yield Button("Apply", variant="primary", id="apply")
-                yield Button("Cancel", variant="default", id="cancel")
+                yield Button("[ APPLY ]", variant="primary", id="apply")
+                yield Button("[ CANCEL ]", variant="default", id="cancel")
+        yield Footer()
 
     def on_mount(self) -> None:
         """Set up the preview table and initial selection."""
         # Set up preview table
         table = self.query_one("#preview-table", DataTable)
         table.add_columns("ID", "Content", "Tags")
-        table.add_row("abc123", "Sample memory content...", "tag1, tag2")
-        table.add_row("def456", "Another memory entry", "example")
+        table.add_row("abc123", "Sample memory...", "tag1, tag2")
+        table.add_row("def456", "Another entry", "example")
         table.cursor_type = "row"
 
         # Focus theme list and highlight current theme
@@ -358,12 +511,22 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
                 option_list.highlighted = i
                 break
 
+        # Update description
+        self._update_description(self.current_theme)
+
+    def _update_description(self, theme_id: str) -> None:
+        """Update the theme description label."""
+        description = self.THEME_DESCRIPTIONS.get(theme_id, "")
+        desc_label = self.query_one("#theme-description", Label)
+        desc_label.update(description)
+
     @on(OptionList.OptionHighlighted, "#theme-list")
     def on_theme_highlighted(self, event: OptionList.OptionHighlighted) -> None:
         """Preview theme when highlighted."""
         if event.option and event.option.id:
             self.selected_theme = str(event.option.id)
             self.app.theme = self.selected_theme
+            self._update_description(self.selected_theme)
 
     def action_cursor_up(self) -> None:
         """Move cursor up in theme list."""
@@ -405,43 +568,82 @@ class SettingsScreen(ModalScreen[bool]):
     #dialog {
         width: 80;
         height: auto;
-        border: thick $background 80%;
+        max-height: 90%;
+        border: double $primary;
         background: $surface;
         padding: 1;
+        overflow-y: auto;
+    }
+
+    #title {
+        height: auto;
+        text-style: bold;
+        color: $primary;
+        text-align: center;
+        margin-bottom: 1;
     }
 
     .section {
-        border: solid $primary;
+        height: auto;
+        width: 100%;
+        border: heavy $secondary;
+        background: $panel;
         padding: 1;
         margin-bottom: 1;
     }
 
     .section-title {
-        color: $accent;
+        height: auto;
+        color: $primary;
         text-style: bold;
         margin-bottom: 1;
     }
 
     .info-text {
-        color: $text-muted;
+        height: auto;
+        color: $secondary;
         margin-bottom: 1;
     }
 
     .welcome-text {
-        color: $accent;
+        height: auto;
+        color: $primary;
         text-style: bold;
         text-align: center;
         margin-bottom: 2;
     }
 
     .onboarding-text {
-        color: $text;
+        height: auto;
+        color: $secondary;
         text-align: center;
         margin-bottom: 2;
     }
 
+    Label {
+        height: auto;
+        color: $secondary;
+    }
+
+    .section Label {
+        color: $secondary;
+    }
+
     Button {
+        height: auto;
         margin: 0 1 1 1;
+    }
+
+    Button.-default {
+        color: $secondary;
+        background: $surface;
+        border: tall $primary;
+    }
+
+    Button.-primary {
+        color: $background;
+        background: $primary;
+        text-style: bold;
     }
 
     Button:focus {
@@ -452,11 +654,16 @@ class SettingsScreen(ModalScreen[bool]):
         height: auto;
         margin-top: 1;
     }
+
+    Footer {
+        dock: bottom;
+    }
     """
 
     BINDINGS = [
         Binding("up,k", "focus_previous", "Up", show=False),
         Binding("down,j", "focus_next", "Down", show=False),
+        Binding("ctrl+p", "open_theme", "Theme"),
         Binding("escape", "cancel", "Back"),
         Binding("q", "quit_app", "Quit"),
     ]
@@ -484,9 +691,13 @@ class SettingsScreen(ModalScreen[bool]):
         """Move focus to next button."""
         self.focus_next()
 
+    async def action_open_theme(self) -> None:
+        """Open theme selector (ctrl+p)."""
+        await self.handle_theme_config()
+
     def compose(self) -> ComposeResult:
         """Compose the settings screen."""
-        with Container(id="dialog"):
+        with VerticalScroll(id="dialog"):
             # Show welcome message for first-time setup
             if self.is_first_run:
                 yield Label("Welcome to Yaade!", classes="welcome-text")
@@ -529,9 +740,9 @@ class SettingsScreen(ModalScreen[bool]):
             # Server info section
             with Vertical(classes="section"):
                 yield Label("Server Information", classes="section-title")
-                yield Label(f"Embedding Model: {self.config_data.get('embedding_model', 'N/A')}")
-                yield Label(f"Host: {self.config_data.get('host', 'localhost')}")
-                yield Label(f"Port: {self.config_data.get('port', '8000')}")
+                yield Label(f"Embedding Model: {self.config_data.get('embedding_model', 'N/A')}", classes="info-text")
+                yield Label(f"Host: {self.config_data.get('host', 'localhost')}", classes="info-text")
+                yield Label(f"Port: {self.config_data.get('port', '8000')}", classes="info-text")
 
             # Theme section
             with Vertical(classes="section"):
@@ -545,6 +756,7 @@ class SettingsScreen(ModalScreen[bool]):
                     yield Button("Continue to Memory Management", variant="primary", id="back")
                 else:
                     yield Button("Back to Main Menu", variant="default", id="back")
+        yield Footer()
 
     @on(Button.Pressed, "#storage_config")
     async def handle_storage_config(self) -> None:
