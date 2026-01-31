@@ -255,8 +255,8 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
     }
 
     #dialog {
-        width: 100;
-        height: 32;
+        width: 90;
+        height: 24;
         border: double $primary;
         background: $surface;
         padding: 1;
@@ -276,7 +276,7 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
     }
 
     #theme-list-container {
-        width: 35;
+        width: 30;
         height: 100%;
         border: heavy $primary;
         padding: 0 1;
@@ -326,7 +326,7 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
     }
 
     #color-swatches {
-        height: 3;
+        height: 1;
         margin-bottom: 1;
     }
 
@@ -363,7 +363,7 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
     }
 
     #preview-table {
-        height: 5;
+        height: 4;
         margin-bottom: 1;
         border: solid $primary;
     }
@@ -379,18 +379,27 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
 
     #preview-buttons Button.-primary {
         background: $primary;
+    }
+
+    #preview-buttons Button.-primary > .button--label {
         color: #0a0a12;
         text-style: bold;
     }
 
     #preview-buttons Button.-default {
-        background: $surface;
-        color: $text;
+        background: $panel;
         border: tall $primary;
+    }
+
+    #preview-buttons Button.-default > .button--label {
+        color: $text;
     }
 
     #preview-buttons Button.-error {
         background: $error;
+    }
+
+    #preview-buttons Button.-error > .button--label {
         color: #0a0a12;
         text-style: bold;
     }
@@ -401,21 +410,27 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
     }
 
     #buttons Button {
-        height: auto;
+        height: 3;
         margin: 0 1;
         min-width: 16;
     }
 
     #apply {
         background: $success;
+    }
+
+    #apply > .button--label {
         color: #0a0a12;
         text-style: bold;
     }
 
     #cancel {
-        background: $surface;
-        color: $text;
+        background: $panel;
         border: tall $primary;
+    }
+
+    #cancel > .button--label {
+        color: $text;
     }
 
     Button:focus {
@@ -557,11 +572,11 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
         self.handle_cancel()
 
 
-class SettingsScreen(ModalScreen[bool]):
-    """Settings screen for server configuration."""
+class SetupScreen(ModalScreen[bool]):
+    """Setup screen for MCP integration configuration."""
 
     CSS = """
-    SettingsScreen {
+    SetupScreen {
         align: center middle;
     }
 
@@ -681,7 +696,7 @@ class SettingsScreen(ModalScreen[bool]):
 
     def on_mount(self) -> None:
         """Set initial focus on the first button."""
-        self.query_one("#storage_config", Button).focus()
+        self.query_one("#setup_claude_desktop", Button).focus()
 
     def action_focus_previous(self) -> None:
         """Move focus to previous button."""
@@ -691,65 +706,49 @@ class SettingsScreen(ModalScreen[bool]):
         """Move focus to next button."""
         self.focus_next()
 
-    async def action_open_theme(self) -> None:
-        """Open theme selector (ctrl+p)."""
-        await self.handle_theme_config()
-
     def compose(self) -> ComposeResult:
-        """Compose the settings screen."""
+        """Compose the setup screen."""
         with VerticalScroll(id="dialog"):
             # Show welcome message for first-time setup
             if self.is_first_run:
                 yield Label("Welcome to Yaade!", classes="welcome-text")
                 yield Label(
-                    "Let's set up your memory storage location and configure MCP integration.",
+                    "Let's configure MCP integration with your Claude client.",
                     classes="onboarding-text"
                 )
 
-            yield Label("Yaade Settings", id="title")
+            yield Label("MCP Integration Setup", id="title")
 
-            # Storage configuration section
-            with Vertical(classes="section"):
-                yield Label("Storage Configuration", classes="section-title")
-                yield Label(
-                    f"Current: {self.config_data.get('data_dir', 'N/A')}",
-                    classes="info-text"
-                )
-                if self.is_first_run:
+            # Storage configuration section (only for first run)
+            if self.is_first_run:
+                with Vertical(classes="section"):
+                    yield Label("Storage Configuration", classes="section-title")
+                    yield Label(
+                        f"Current: {self.config_data.get('data_dir', 'N/A')}",
+                        classes="info-text"
+                    )
                     yield Label(
                         "Choose where to store your memories (optional - default is '.yaade')",
                         classes="info-text"
                     )
-                yield Button("Change Storage Location", id="storage_config", variant="default")
+                    yield Button("Change Storage Location", id="storage_config", variant="default")
 
             # MCP Integration section
             with Vertical(classes="section"):
-                yield Label("MCP Integration Setup", classes="section-title")
+                yield Label("Claude Desktop", classes="section-title")
                 yield Label(
-                    "Configure Yaade for Claude Desktop or Claude Code",
+                    "Configure Yaade as an MCP server for Claude Desktop app",
                     classes="info-text"
                 )
-                if self.is_first_run:
-                    yield Label(
-                        "Run these setup scripts to integrate with your Claude client (optional)",
-                        classes="info-text"
-                    )
                 yield Button("Setup for Claude Desktop", id="setup_claude_desktop", variant="primary")
+
+            with Vertical(classes="section"):
+                yield Label("Claude Code", classes="section-title")
+                yield Label(
+                    "Configure Yaade as an MCP server for Claude Code CLI",
+                    classes="info-text"
+                )
                 yield Button("Setup for Claude Code", id="setup_claude_code", variant="primary")
-
-            # Server info section
-            with Vertical(classes="section"):
-                yield Label("Server Information", classes="section-title")
-                yield Label(f"Embedding Model: {self.config_data.get('embedding_model', 'N/A')}", classes="info-text")
-                yield Label(f"Host: {self.config_data.get('host', 'localhost')}", classes="info-text")
-                yield Label(f"Port: {self.config_data.get('port', '8000')}", classes="info-text")
-
-            # Theme section
-            with Vertical(classes="section"):
-                yield Label("Appearance", classes="section-title")
-                current_theme = self.config_data.get('theme', 'textual-dark')
-                yield Label(f"Current theme: {current_theme}", classes="info-text", id="current-theme-label")
-                yield Button("Change Theme", id="theme_config", variant="default")
 
             with Horizontal(id="buttons"):
                 if self.is_first_run:
@@ -804,56 +803,6 @@ class SettingsScreen(ModalScreen[bool]):
 
         except Exception as e:
             self.app.notify(f"Failed to update storage location: {str(e)}", severity="error")
-
-    @on(Button.Pressed, "#theme_config")
-    async def handle_theme_config(self) -> None:
-        """Handle theme configuration."""
-        current_theme = self.config_data.get('theme', self.app.theme or 'textual-dark')
-
-        def callback(new_theme: Optional[str]) -> None:
-            if new_theme is not None:
-                self.update_theme(new_theme)
-
-        await self.app.push_screen(ThemeSelectScreen(current_theme), callback)
-
-    def update_theme(self, new_theme: str) -> None:
-        """Update theme in .env file and apply it."""
-        try:
-            env_path = Path.cwd() / '.env'
-
-            # Read existing .env or create new one
-            env_lines = []
-            if env_path.exists():
-                with open(env_path, 'r') as f:
-                    env_lines = f.readlines()
-
-            # Update or add YAADE_THEME
-            found = False
-            for i, line in enumerate(env_lines):
-                if line.startswith('YAADE_THEME='):
-                    env_lines[i] = f'YAADE_THEME={new_theme}\n'
-                    found = True
-                    break
-
-            if not found:
-                env_lines.append(f'YAADE_THEME={new_theme}\n')
-
-            # Write back
-            with open(env_path, 'w') as f:
-                f.writelines(env_lines)
-
-            # Apply theme immediately
-            self.app.theme = new_theme
-            self.config_data['theme'] = new_theme
-
-            # Update the label
-            theme_label = self.query_one("#current-theme-label", Label)
-            theme_label.update(f"Current theme: {new_theme}")
-
-            self.app.notify(f"Theme changed to: {new_theme}", severity="information")
-
-        except Exception as e:
-            self.app.notify(f"Failed to update theme: {str(e)}", severity="error")
 
     @on(Button.Pressed, "#setup_claude_desktop")
     async def handle_setup_claude_desktop(self) -> None:
@@ -952,6 +901,270 @@ class SettingsScreen(ModalScreen[bool]):
             self.app.notify("Setup script timed out", severity="error")
         except Exception as e:
             self.app.notify(f"Setup failed: {str(e)}", severity="error")
+
+    @on(Button.Pressed, "#back")
+    def handle_back(self) -> None:
+        """Handle back button press."""
+        self.dismiss(True)
+
+    def action_cancel(self) -> None:
+        """Handle escape key."""
+        self.dismiss(True)
+
+    def action_quit_app(self) -> None:
+        """Quit the application."""
+        self.app.exit()
+
+
+class SettingsScreen(ModalScreen[bool]):
+    """Settings screen for server configuration."""
+
+    CSS = """
+    SettingsScreen {
+        align: center middle;
+    }
+
+    #dialog {
+        width: 80;
+        height: auto;
+        max-height: 90%;
+        border: double $primary;
+        background: $surface;
+        padding: 1;
+        overflow-y: auto;
+    }
+
+    #title {
+        height: auto;
+        text-style: bold;
+        color: $primary;
+        text-align: center;
+        margin-bottom: 1;
+    }
+
+    .section {
+        height: auto;
+        width: 100%;
+        border: heavy $secondary;
+        background: $panel;
+        padding: 1;
+        margin-bottom: 1;
+    }
+
+    .section-title {
+        height: auto;
+        color: $primary;
+        text-style: bold;
+        margin-bottom: 1;
+    }
+
+    .info-text {
+        height: auto;
+        color: $secondary;
+        margin-bottom: 1;
+    }
+
+    Label {
+        height: auto;
+        color: $secondary;
+    }
+
+    .section Label {
+        color: $secondary;
+    }
+
+    Button {
+        height: auto;
+        margin: 0 1 1 1;
+    }
+
+    Button.-default {
+        color: $secondary;
+        background: $surface;
+        border: tall $primary;
+    }
+
+    Button.-primary {
+        color: $background;
+        background: $primary;
+        text-style: bold;
+    }
+
+    Button:focus {
+        text-style: bold reverse;
+    }
+
+    #buttons {
+        height: auto;
+        margin-top: 1;
+    }
+
+    Footer {
+        dock: bottom;
+    }
+    """
+
+    BINDINGS = [
+        Binding("up,k", "focus_previous", "Up", show=False),
+        Binding("down,j", "focus_next", "Down", show=False),
+        Binding("ctrl+p", "open_theme", "Theme"),
+        Binding("escape", "cancel", "Back"),
+        Binding("q", "quit_app", "Quit"),
+    ]
+
+    def __init__(self, config_data: dict):
+        """Initialize with current config.
+
+        Args:
+            config_data: Current configuration data
+        """
+        super().__init__()
+        self.config_data = config_data
+
+    def on_mount(self) -> None:
+        """Set initial focus on the first button."""
+        self.query_one("#storage_config", Button).focus()
+
+    def action_focus_previous(self) -> None:
+        """Move focus to previous button."""
+        self.focus_previous()
+
+    def action_focus_next(self) -> None:
+        """Move focus to next button."""
+        self.focus_next()
+
+    async def action_open_theme(self) -> None:
+        """Open theme selector (ctrl+p)."""
+        await self.handle_theme_config()
+
+    def compose(self) -> ComposeResult:
+        """Compose the settings screen."""
+        with VerticalScroll(id="dialog"):
+            yield Label("Settings", id="title")
+
+            # Storage configuration section
+            with Vertical(classes="section"):
+                yield Label("Storage Configuration", classes="section-title")
+                yield Label(
+                    f"Current: {self.config_data.get('data_dir', 'N/A')}",
+                    classes="info-text"
+                )
+                yield Button("Change Storage Location", id="storage_config", variant="default")
+
+            # Server info section
+            with Vertical(classes="section"):
+                yield Label("Server Information", classes="section-title")
+                yield Label(f"Embedding Model: {self.config_data.get('embedding_model', 'N/A')}", classes="info-text")
+                yield Label(f"Host: {self.config_data.get('host', 'localhost')}", classes="info-text")
+                yield Label(f"Port: {self.config_data.get('port', '8000')}", classes="info-text")
+
+            # Theme section
+            with Vertical(classes="section"):
+                yield Label("Appearance", classes="section-title")
+                current_theme = self.config_data.get('theme', 'textual-dark')
+                yield Label(f"Current theme: {current_theme}", classes="info-text", id="current-theme-label")
+                yield Button("Change Theme", id="theme_config", variant="default")
+
+            with Horizontal(id="buttons"):
+                yield Button("Back to Main Menu", variant="default", id="back")
+        yield Footer()
+
+    @on(Button.Pressed, "#storage_config")
+    async def handle_storage_config(self) -> None:
+        """Handle storage configuration."""
+        current_path = self.config_data.get('data_dir', '.yaade')
+
+        def callback(new_path: Optional[str]) -> None:
+            if new_path is not None:
+                self.update_storage_path(new_path)
+
+        await self.app.push_screen(StorageConfigScreen(current_path), callback)
+
+    def update_storage_path(self, new_path: str) -> None:
+        """Update storage path in .env file."""
+        try:
+            env_path = Path.cwd() / '.env'
+
+            # Read existing .env or create new one
+            env_lines = []
+            if env_path.exists():
+                with open(env_path, 'r') as f:
+                    env_lines = f.readlines()
+
+            # Update or add YAADE_DATA_DIR
+            found = False
+            for i, line in enumerate(env_lines):
+                if line.startswith('YAADE_DATA_DIR='):
+                    env_lines[i] = f'YAADE_DATA_DIR={new_path}\n'
+                    found = True
+                    break
+
+            if not found:
+                env_lines.append(f'YAADE_DATA_DIR={new_path}\n')
+
+            # Write back
+            with open(env_path, 'w') as f:
+                f.writelines(env_lines)
+
+            self.app.notify(
+                f"Storage location updated to: {new_path}\nRestart the server for changes to take effect.",
+                severity="information",
+                timeout=5
+            )
+            self.config_data['data_dir'] = new_path
+
+        except Exception as e:
+            self.app.notify(f"Failed to update storage location: {str(e)}", severity="error")
+
+    @on(Button.Pressed, "#theme_config")
+    async def handle_theme_config(self) -> None:
+        """Handle theme configuration."""
+        current_theme = self.config_data.get('theme', self.app.theme or 'textual-dark')
+
+        def callback(new_theme: Optional[str]) -> None:
+            if new_theme is not None:
+                self.update_theme(new_theme)
+
+        await self.app.push_screen(ThemeSelectScreen(current_theme), callback)
+
+    def update_theme(self, new_theme: str) -> None:
+        """Update theme in .env file and apply it."""
+        try:
+            env_path = Path.cwd() / '.env'
+
+            # Read existing .env or create new one
+            env_lines = []
+            if env_path.exists():
+                with open(env_path, 'r') as f:
+                    env_lines = f.readlines()
+
+            # Update or add YAADE_THEME
+            found = False
+            for i, line in enumerate(env_lines):
+                if line.startswith('YAADE_THEME='):
+                    env_lines[i] = f'YAADE_THEME={new_theme}\n'
+                    found = True
+                    break
+
+            if not found:
+                env_lines.append(f'YAADE_THEME={new_theme}\n')
+
+            # Write back
+            with open(env_path, 'w') as f:
+                f.writelines(env_lines)
+
+            # Apply theme immediately
+            self.app.theme = new_theme
+            self.config_data['theme'] = new_theme
+
+            # Update the label
+            theme_label = self.query_one("#current-theme-label", Label)
+            theme_label.update(f"Current theme: {new_theme}")
+
+            self.app.notify(f"Theme changed to: {new_theme}", severity="information")
+
+        except Exception as e:
+            self.app.notify(f"Failed to update theme: {str(e)}", severity="error")
 
     @on(Button.Pressed, "#back")
     def handle_back(self) -> None:

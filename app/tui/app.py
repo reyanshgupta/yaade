@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 
 from .memory_manager import MemoryManager
-from .settings import SettingsScreen, ThemeSelectScreen
+from .settings import SettingsScreen, SetupScreen, ThemeSelectScreen
 from .themes import CUSTOM_THEMES
 
 # Type alias for add memory result
@@ -286,11 +286,11 @@ class MainMenuScreen(Screen["Yaade"]):
     }
 
     #main-container {
-        width: 50;
+        width: 60;
         height: auto;
         background: $surface;
         border: heavy $primary;
-        padding: 1 2;
+        padding: 0 2;
     }
 
     #logo {
@@ -298,6 +298,7 @@ class MainMenuScreen(Screen["Yaade"]):
         text-style: bold;
         text-align: center;
         width: 100%;
+        content-align: center middle;
     }
 
     #tagline {
@@ -306,6 +307,7 @@ class MainMenuScreen(Screen["Yaade"]):
         text-align: center;
         width: 100%;
         margin-bottom: 1;
+        text-opacity: 70%;
     }
 
     .menu-button {
@@ -317,7 +319,6 @@ class MainMenuScreen(Screen["Yaade"]):
         color: $text-muted;
         text-align: center;
         width: 100%;
-        margin-top: 1;
     }
     """
 
@@ -325,19 +326,30 @@ class MainMenuScreen(Screen["Yaade"]):
         Binding("up,k", "focus_previous", "Up", show=False),
         Binding("down,j", "focus_next", "Down", show=False),
         Binding("1", "memory_management", "Memories"),
-        Binding("2", "settings", "Settings"),
+        Binding("2", "setup", "Setup"),
+        Binding("3", "settings", "Settings"),
         Binding("q", "quit", "Quit"),
     ]
 
     def compose(self) -> ComposeResult:
         """Compose the main menu."""
+        # ASCII art for "yaade" - center aligned
+        logo_art = (
+            " _   _  __ _   __ _  __| | ___ \n"
+            "| | | |/ _` | / _` |/ _` |/ _ \\\n"
+            "| |_| | (_| || (_| | (_| |  __/\n"
+            " \\__, |\\__,_| \\__,_|\\__,_|\\___|\n"
+            " |___/                         "
+        )
+
         yield Header()
         with Center():
             with Container(id="main-container"):
-                yield Static("Y A A D E", id="logo")
-                yield Static("central memory for all your AI tools", id="tagline")
-                yield Button("[1] Memories", id="memory_mgmt", classes="menu-button", variant="primary")
-                yield Button("[2] Settings", id="settings", classes="menu-button", variant="default")
+                yield Static(logo_art, id="logo")
+                yield Static("memory for your AI tools", id="tagline")
+                yield Button("[1] Memories", id="memory_mgmt", classes="menu-button", variant="default")
+                yield Button("[2] Setup", id="setup", classes="menu-button", variant="default")
+                yield Button("[3] Settings", id="settings", classes="menu-button", variant="default")
                 yield Button("[Q] Exit", id="quit", classes="menu-button", variant="error")
                 yield Label("v0.1.0", id="footer-text")
         yield Footer()
@@ -364,6 +376,11 @@ class MainMenuScreen(Screen["Yaade"]):
         """Navigate to memory management."""
         self.action_memory_management()
 
+    @on(Button.Pressed, "#setup")
+    def handle_setup(self) -> None:
+        """Navigate to setup."""
+        self.action_setup()
+
     @on(Button.Pressed, "#settings")
     def handle_settings(self) -> None:
         """Navigate to settings."""
@@ -377,6 +394,11 @@ class MainMenuScreen(Screen["Yaade"]):
     def action_memory_management(self) -> None:
         """Switch to memory management screen."""
         self.app.push_screen("memory_screen")
+
+    def action_setup(self) -> None:
+        """Show setup dialog."""
+        app = cast("Yaade", self.app)
+        self.app.push_screen(SetupScreen(app._get_config_data()))
 
     def action_settings(self) -> None:
         """Show settings dialog."""
@@ -776,9 +798,9 @@ class Yaade(App):
         self.theme = self._saved_theme
 
         if self.is_first_run:
-            # First-time setup: show settings screen directly
+            # First-time setup: show setup screen directly
             config_data = self._get_config_data()
-            self.push_screen(SettingsScreen(config_data, is_first_run=True), self._handle_first_run_complete)
+            self.push_screen(SetupScreen(config_data, is_first_run=True), self._handle_first_run_complete)
         else:
             # Already set up: go directly to memory management with menu in background
             self.push_screen("menu")
