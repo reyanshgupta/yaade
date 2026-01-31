@@ -56,35 +56,14 @@ class Yaade(App):
     /* Button styling */
     Button {
         border: tall $primary;
-        color: $text;
     }
 
     Button:hover {
-        background: $primary 20%;
         border: tall $secondary;
     }
 
     Button:focus {
         text-style: bold reverse;
-    }
-
-    Button.-primary {
-        background: $primary;
-        color: $foreground;
-        border: tall $primary;
-        text-style: bold;
-    }
-
-    Button.-primary:hover {
-        background: $primary 80%;
-        border: tall $secondary;
-    }
-
-    Button.-error {
-        background: $error;
-        color: $foreground;
-        border: tall $error;
-        text-style: bold;
     }
 
     /* Input styling */

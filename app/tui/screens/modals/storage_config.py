@@ -23,48 +23,6 @@ class StorageConfigScreen(ModalScreen[Optional[str]]):
     StorageConfigScreen {
         align: center middle;
     }
-
-    #dialog {
-        width: 70;
-        height: auto;
-        border: double $primary;
-        background: $surface;
-        padding: 1;
-    }
-
-    #title {
-        text-style: bold;
-        color: $primary;
-        margin-bottom: 1;
-    }
-
-    #buttons {
-        height: auto;
-        margin-top: 1;
-    }
-
-    Button {
-        margin: 0 1;
-    }
-
-    Button:focus {
-        text-style: bold reverse;
-    }
-
-    Input {
-        border: tall $primary;
-        background: $panel;
-    }
-
-    Input:focus {
-        border: tall $secondary;
-        background: $surface;
-    }
-
-    .help-text {
-        color: $secondary;
-        margin-bottom: 1;
-    }
     """
 
     BINDINGS = [
@@ -79,8 +37,8 @@ class StorageConfigScreen(ModalScreen[Optional[str]]):
 
     def compose(self) -> ComposeResult:
         """Compose the storage config dialog."""
-        with Container(id="dialog"):
-            yield Label("Configure Storage Location", id="title")
+        with Container(id="dialog", classes="modal-dialog-narrow"):
+            yield Label("Configure Storage Location", id="title", classes="modal-title")
             yield Label(
                 "Current: " + self.current_path,
                 classes="help-text"
@@ -95,7 +53,7 @@ class StorageConfigScreen(ModalScreen[Optional[str]]):
                 "Tip: Use ~ for home directory. Path will be created if it doesn't exist.",
                 classes="help-text"
             )
-            with Horizontal(id="buttons"):
+            with Horizontal(id="buttons", classes="modal-buttons"):
                 yield Button("Save", variant="primary", id="save")
                 yield Button("Cancel", variant="default", id="cancel")
 

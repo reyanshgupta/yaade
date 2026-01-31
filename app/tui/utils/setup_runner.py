@@ -26,6 +26,7 @@ class SetupRunner:
     CLIENT_TYPES = {
         "claude-desktop": "claude-desktop",
         "claude-code": "claude-code",
+        "opencode": "opencode",
     }
 
     @staticmethod
@@ -143,5 +144,6 @@ class SetupRunner:
         names = {
             "claude-desktop": "Claude Desktop",
             "claude-code": "Claude Code",
+            "opencode": "OpenCode",
         }
         return names.get(client_type, client_type)

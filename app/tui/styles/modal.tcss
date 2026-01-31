@@ -69,6 +69,17 @@
     margin: 0 1;
 }
 
+/* Standard modal button styling */
+.modal-dialog Button,
+.modal-buttons Button {
+    min-width: 16;
+}
+
+.modal-dialog Button:focus,
+.modal-buttons Button:focus {
+    text-style: bold reverse;
+}
+
 /* Modal Label styling */
 .modal-dialog Label {
     color: $secondary;

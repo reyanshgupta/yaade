@@ -27,45 +27,8 @@ class AddMemoryScreen(ModalScreen[Optional[AddMemoryResult]]):
         align: center middle;
     }
 
-    #dialog {
-        width: 80;
-        height: auto;
-        border: double $primary;
-        background: $surface;
-        padding: 1;
-    }
-
-    #title {
-        text-style: bold;
-        color: $primary;
-        margin-bottom: 1;
-    }
-
-    Label {
-        color: $secondary;
-    }
-
-    #buttons {
-        height: auto;
-        margin-top: 1;
-    }
-
-    Button {
-        margin: 0 1;
-    }
-
-    Button:focus {
-        text-style: bold reverse;
-    }
-
-    Input {
-        border: tall $primary;
-        background: $panel;
-    }
-
-    Input:focus {
-        border: tall $secondary;
-        background: $surface;
+    #buttons Button {
+        min-width: 16;
     }
     """
 
@@ -76,15 +39,15 @@ class AddMemoryScreen(ModalScreen[Optional[AddMemoryResult]]):
 
     def compose(self) -> ComposeResult:
         """Compose the add memory dialog."""
-        with Container(id="dialog"):
-            yield Label("[ ADD NEW MEMORY ]", id="title")
+        with Container(id="dialog", classes="modal-dialog"):
+            yield Label("[ ADD NEW MEMORY ]", id="title", classes="modal-title")
             yield Label("Content:")
             yield Input(placeholder="Enter memory content...", id="content")
             yield Label("Tags (comma-separated):")
             yield Input(placeholder="tag1, tag2, tag3", id="tags")
             yield Label("Importance (0-10):")
             yield Input(placeholder="1.0", id="importance", value="1.0")
-            with Horizontal(id="buttons"):
+            with Horizontal(id="buttons", classes="modal-buttons"):
                 yield Button("[ ADD ]", variant="primary", id="add")
                 yield Button("[ CANCEL ]", variant="default", id="cancel")
 

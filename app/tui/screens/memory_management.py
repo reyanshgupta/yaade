@@ -235,7 +235,9 @@ class MemoryManagementScreen(Screen["Yaade"]):
             self.app.notify("Please select a memory to delete", severity="warning")
             return
 
-        memory = self.memories[table.cursor_row]
+        # Save cursor position before deletion
+        cursor_row = table.cursor_row
+        memory = self.memories[cursor_row]
         memory_id = memory["memory_id"]
 
         app = cast("Yaade", self.app)
@@ -245,6 +247,11 @@ class MemoryManagementScreen(Screen["Yaade"]):
         if response.get("status") == "deleted":
             self.app.notify("Memory deleted successfully", severity="information")
             await self.refresh_memories()
+            # Restore cursor position (adjust if we deleted the last row)
+            new_row_count = len(self.memories)
+            if new_row_count > 0:
+                new_cursor_row = min(cursor_row, new_row_count - 1)
+                table.move_cursor(row=new_cursor_row)
         else:
             self.app.notify(f"Failed to delete memory: {response.get('error', 'Unknown error')}", severity="error")
 

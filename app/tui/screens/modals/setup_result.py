@@ -30,31 +30,6 @@ class SetupResultScreen(ModalScreen[bool]):
         background: $surface;
         padding: 1;
     }
-
-    #title {
-        text-style: bold;
-        color: $primary;
-        margin-bottom: 1;
-    }
-
-    #output {
-        height: 1fr;
-        border: heavy $secondary;
-        background: $panel;
-        margin-bottom: 1;
-    }
-
-    #buttons {
-        height: auto;
-    }
-
-    Button {
-        margin: 0 1;
-    }
-
-    Button:focus {
-        text-style: bold reverse;
-    }
     """
 
     BINDINGS = [
@@ -72,10 +47,10 @@ class SetupResultScreen(ModalScreen[bool]):
         """Compose the result dialog."""
         status = "Success" if self.success else "Error"
         with Container(id="dialog"):
-            yield Label(f"{self.title_text} - {status}", id="title")
-            with VerticalScroll(id="output"):
+            yield Label(f"{self.title_text} - {status}", id="title", classes="modal-title")
+            with VerticalScroll(id="output", classes="modal-output"):
                 yield Static(self.output_text)
-            with Horizontal(id="buttons"):
+            with Horizontal(id="buttons", classes="modal-buttons"):
                 yield Button("Close", variant="primary", id="close")
 
     def on_mount(self) -> None:

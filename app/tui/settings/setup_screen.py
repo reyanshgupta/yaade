@@ -196,6 +196,14 @@ class SetupScreen(ModalScreen[bool]):
                 )
                 yield Button("Setup for Claude Code", id="setup_claude_code", variant="primary")
 
+            with Vertical(classes="section"):
+                yield Label("OpenCode", classes="section-title")
+                yield Label(
+                    "Configure Yaade as an MCP server for OpenCode",
+                    classes="info-text"
+                )
+                yield Button("Setup for OpenCode", id="setup_opencode", variant="primary")
+
             with Horizontal(id="buttons"):
                 if self.is_first_run:
                     yield Button("Continue to Memory Management", variant="primary", id="back")
@@ -238,11 +246,16 @@ class SetupScreen(ModalScreen[bool]):
         """Handle Claude Code setup."""
         await self._run_setup("claude-code")
 
+    @on(Button.Pressed, "#setup_opencode")
+    async def handle_setup_opencode(self) -> None:
+        """Handle OpenCode setup."""
+        await self._run_setup("opencode")
+
     async def _run_setup(self, client_type: str) -> None:
         """Run setup for the specified client type.
         
         Args:
-            client_type: Either 'claude-desktop' or 'claude-code'
+            client_type: Either 'claude-desktop', 'claude-code', or 'opencode'
         """
         display_name = SetupRunner.get_client_display_name(client_type)
         self.app.notify(f"Running {display_name} setup script...", severity="information")

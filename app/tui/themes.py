@@ -30,6 +30,9 @@ cyberpunk_theme = Theme(
         "scrollbar-color": "#ff00ff",
         "scrollbar-color-hover": "#00ffff",
         "scrollbar-background": "#1a1a2e",
+        # Button variables
+        "button-foreground": "#e0e0ff",
+        "button-color-foreground": "#0a0a12",
     },
 )
 
@@ -54,6 +57,9 @@ cyberpunk_soft_theme = Theme(
         "input-selection-background": "#c850c0 30%",
         "scrollbar-color": "#c850c0",
         "scrollbar-color-hover": "#4fc3dc",
+        # Button variables
+        "button-foreground": "#d0d0e0",
+        "button-color-foreground": "#0d0d14",
     },
 )
 
@@ -77,6 +83,9 @@ neon_nights_theme = Theme(
         "input-selection-background": "#9d4edd 35%",
         "scrollbar-color": "#9d4edd",
         "scrollbar-color-hover": "#00f5d4",
+        # Button variables
+        "button-foreground": "#e0e0e8",
+        "button-color-foreground": "#0f0f1a",
     },
 )
 

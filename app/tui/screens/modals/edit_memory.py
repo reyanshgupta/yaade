@@ -27,50 +27,9 @@ class EditMemoryScreen(ModalScreen[Optional[EditMemoryResult]]):
         align: center middle;
     }
 
-    #dialog {
-        width: 80;
-        height: auto;
-        border: double $primary;
-        background: $surface;
-        padding: 1;
-    }
-
-    #title {
-        text-style: bold;
-        color: $primary;
-        margin-bottom: 1;
-    }
-
-    Label {
-        color: $secondary;
-    }
-
     #memory-id {
         color: $text-muted;
         text-style: italic;
-    }
-
-    #buttons {
-        height: auto;
-        margin-top: 1;
-    }
-
-    Button {
-        margin: 0 1;
-    }
-
-    Button:focus {
-        text-style: bold reverse;
-    }
-
-    Input {
-        border: tall $primary;
-        background: $panel;
-    }
-
-    Input:focus {
-        border: tall $secondary;
-        background: $surface;
     }
     """
 
@@ -93,8 +52,8 @@ class EditMemoryScreen(ModalScreen[Optional[EditMemoryResult]]):
         tags_display = tags_str.replace(",", ", ") if tags_str else ""
         importance = metadata.get("importance", 1.0)
 
-        with Container(id="dialog"):
-            yield Label("[ EDIT MEMORY ]", id="title")
+        with Container(id="dialog", classes="modal-dialog"):
+            yield Label("[ EDIT MEMORY ]", id="title", classes="modal-title")
             yield Label(f"ID: {self.memory['memory_id'][:8]}...", id="memory-id")
             yield Label("Content:")
             yield Input(
@@ -113,7 +72,7 @@ class EditMemoryScreen(ModalScreen[Optional[EditMemoryResult]]):
                 placeholder="1.0",
                 id="importance"
             )
-            with Horizontal(id="buttons"):
+            with Horizontal(id="buttons", classes="modal-buttons"):
                 yield Button("[ SAVE ]", variant="primary", id="save")
                 yield Button("[ CANCEL ]", variant="default", id="cancel")
 
