@@ -1,0 +1,30 @@
+{
+  "$schema": "https://continue.dev/config-schema.json",
+  "name": "Yaade",
+  "description": "Local MCP memory storage server for AI agents",
+  "contextProviders": [
+    {
+      "name": "file",
+      "params": {
+        "files": [
+          ".agents/AGENTS.md",
+          "README.md",
+          "pyproject.toml"
+        ]
+      }
+    },
+    {
+      "name": "codebase",
+      "params": {
+        "directories": ["app", "tests"]
+      }
+    }
+  ],
+  "docs": [
+    {
+      "name": "Yaade Docs",
+      "startUrl": ".agents/AGENTS.md"
+    }
+  ],
+  "systemMessage": "You are working on Yaade, a local MCP-compatible memory storage server for AI agents. Tech stack: Python 3.12+, ChromaDB, sentence-transformers, Textual TUI, FastMCP, Pydantic v2. Key rules: 1) Local-first - no external APIs, 2) No telemetry, 3) Main thread for embeddings in TUI, 4) Use ConfigManager for .env changes. Commands: uv sync (install), uv run yaade (TUI), uv run yaade serve (MCP), uv run pytest (tests)."
+}

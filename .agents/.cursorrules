@@ -1,0 +1,65 @@
+# Yaade - Cursor Rules
+
+You are working on Yaade, a local MCP-compatible memory storage server for AI agents.
+
+## Project Stack
+- Python 3.12+
+- UV package manager
+- ChromaDB (vector database)
+- sentence-transformers (embeddings)
+- Textual (TUI framework)
+- FastMCP (MCP protocol)
+- Pydantic v2 (data models)
+- pytest (testing)
+
+## Project Structure
+- `app/cli.py` - CLI entry point
+- `app/main.py` - MCP server with tools
+- `app/models/` - Pydantic models (config.py, memory.py, embedding_models.py)
+- `app/storage/vector_store.py` - ChromaDB operations
+- `app/search/embeddings.py` - Sentence-transformer service
+- `app/services/memory_cleanup.py` - Duplicate detection
+- `app/tui/` - Textual TUI (app.py, screens/, modals/, themes.py)
+- `setup/` - MCP setup scripts
+- `tests/` - Test suite
+
+## Code Conventions
+- Use type hints on all functions
+- Pydantic v2 models for data validation
+- Async functions for MCP tools
+- Google-style docstrings
+- snake_case for files/functions, PascalCase for classes
+- UPPER_SNAKE_CASE for constants
+
+## Commands
+```bash
+uv sync                  # Install dependencies
+uv run yaade             # Run TUI
+uv run yaade serve       # Run MCP server
+uv run pytest            # Run tests
+```
+
+## Critical Rules
+1. LOCAL-FIRST: No external API calls - all processing happens locally
+2. NO TELEMETRY: ChromaDB telemetry is disabled, keep it that way
+3. TUI THREADING: Embedding generation must be on main thread (PyTorch/Textual conflict)
+4. CONFIG: Use ConfigManager class for .env file modifications
+5. DEPENDENCIES: Update pyproject.toml when adding new packages
+
+## MCP Tools Available
+- add_memory, search_memories, get_memory, delete_memory
+- health_check
+- analyze_memory_cleanup, execute_memory_cleanup
+
+## Environment Variables (YAADE_ prefix)
+- DATA_DIR (.yaade)
+- EMBEDDING_MODEL_NAME (all-MiniLM-L6-v2)
+- LOG_LEVEL (INFO)
+- THEME (cyberpunk)
+
+## Testing
+- Mirror app/ structure in tests/unit/
+- Use pytest-asyncio for async tests
+- Use pytest-mock for mocking
+
+For full documentation, see .agents/AGENTS.md

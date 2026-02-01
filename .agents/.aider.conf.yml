@@ -1,0 +1,29 @@
+# Yaade - Aider Configuration
+# Copy to project root as .aider.conf.yml
+
+# Project context
+read:
+  - .agents/AGENTS.md
+  - README.md
+  - pyproject.toml
+
+# Auto-commits disabled - manual review preferred
+auto-commits: false
+
+# Lint command
+lint-cmd: "uv run ruff check"
+
+# Test command
+test-cmd: "uv run pytest"
+
+# Git settings
+gitignore: true
+
+# Model preferences (adjust as needed)
+# model: gpt-4
+# edit-format: diff
+
+# Files to always include
+# watch-files:
+#   - app/main.py
+#   - app/cli.py
