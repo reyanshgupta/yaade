@@ -34,9 +34,10 @@ class MemoryManager:
             List of memory dictionaries sorted by creation date (newest first)
         """
         try:
-            # Get ALL memories - ChromaDB's get() returns arbitrary order,
-            # so we need to fetch all and sort in Python
+            # Get more than limit to allow for sorting, then trim
+            fetch_limit = min(limit * 2, 1000)
             results = self.vector_store.collection.get(
+                limit=fetch_limit,
                 include=["metadatas", "documents"]
             )
 
@@ -51,7 +52,7 @@ class MemoryManager:
                         "metadata": metadatas[i] if i < len(metadatas) else {}
                     })
 
-            # Sort by created_at (newest first) - ISO 8601 format sorts correctly
+            # Sort by created_at (newest first)
             def get_created_at(memory: Dict[str, Any]) -> str:
                 return memory.get("metadata", {}).get("created_at", "")
 
