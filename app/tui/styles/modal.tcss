@@ -69,13 +69,44 @@
     margin: 0 1;
 }
 
-/* Standard modal button styling */
+/* Button styling for modals */
 .modal-dialog Button,
+.modal-dialog-narrow Button,
 .modal-buttons Button {
     min-width: 16;
+    height: auto;
 }
 
+/* Primary button styling */
+.modal-dialog Button.-primary,
+.modal-dialog-narrow Button.-primary,
+.modal-buttons Button.-primary {
+    color: $background;
+    background: $primary;
+    text-style: bold;
+}
+
+/* Default button styling */
+.modal-dialog Button.-default,
+.modal-dialog-narrow Button.-default,
+.modal-buttons Button.-default {
+    color: $text;
+    background: $surface;
+    border: tall $primary;
+}
+
+/* Error button styling */
+.modal-dialog Button.-error,
+.modal-dialog-narrow Button.-error,
+.modal-buttons Button.-error {
+    color: $background;
+    background: $error;
+    text-style: bold;
+}
+
+/* Button focus state */
 .modal-dialog Button:focus,
+.modal-dialog-narrow Button:focus,
 .modal-buttons Button:focus {
     text-style: bold reverse;
 }

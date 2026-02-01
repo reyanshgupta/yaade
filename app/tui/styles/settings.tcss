@@ -68,24 +68,6 @@
     color: $secondary;
 }
 
-/* Settings Button styling */
-.settings-dialog Button {
-    height: auto;
-    margin: 0 1 1 1;
-}
-
-.settings-dialog Button.-default {
-    color: $secondary;
-    background: $surface;
-    border: tall $primary;
-}
-
-.settings-dialog Button.-primary {
-    color: $background;
-    background: $primary;
-    text-style: bold;
-}
-
 /* Button container */
 #buttons {
     height: auto;
@@ -189,27 +171,27 @@ ThemeSelectScreen {
 
 #swatch-primary {
     background: $primary;
-    color: #0a0a12;
+    color: $text;
 }
 
 #swatch-secondary {
     background: $secondary;
-    color: #0a0a12;
+    color: $text;
 }
 
 #swatch-accent {
     background: $accent;
-    color: #0a0a12;
+    color: $text;
 }
 
 #swatch-success {
     background: $success;
-    color: #0a0a12;
+    color: $text;
 }
 
 #swatch-error {
     background: $error;
-    color: #0a0a12;
+    color: $text;
 }
 
 #preview-table {
@@ -222,68 +204,81 @@ ThemeSelectScreen {
     height: auto;
 }
 
-#preview-buttons Button {
-    height: auto;
-    margin-right: 1;
-}
-
-#preview-buttons Button.-primary {
-    background: $primary;
-}
-
-#preview-buttons Button.-primary > .button--label {
-    color: $foreground;
-    text-style: bold;
-}
-
-#preview-buttons Button.-default {
-    background: $panel;
-    border: tall $primary;
-}
-
-#preview-buttons Button.-default > .button--label {
-    color: $text;
-}
-
-#preview-buttons Button.-error {
-    background: $error;
-}
-
-#preview-buttons Button.-error > .button--label {
-    color: $foreground;
-    text-style: bold;
-}
-
-ThemeSelectScreen #buttons Button {
-    height: 3;
-    margin: 0 1;
-    min-width: 16;
-}
-
-#apply {
-    background: $success;
-}
-
-#apply > .button--label {
-    color: $foreground;
-    text-style: bold;
-}
-
-#cancel {
-    background: $panel;
-    border: tall $primary;
-}
-
-#cancel > .button--label {
-    color: $text;
-}
-
 OptionList:focus {
     border: tall $accent;
 }
 
 OptionList > .option-list--option-highlighted {
     background: $primary;
-    color: #0a0a12;
+    color: $text;
     text-style: bold;
+}
+
+
+/* === Collapsible Accordion Styles === */
+
+.integrations-container {
+    height: auto;
+    width: 100%;
+    border: solid $secondary;
+    background: $panel;
+    margin-bottom: 1;
+}
+
+.integrations-title {
+    height: auto;
+    color: $secondary;
+    text-style: italic;
+    margin-bottom: 1;
+    padding: 0 1;
+}
+
+/* CollapsibleItem overrides for SetupScreen */
+SetupScreen CollapsibleItem {
+    margin-bottom: 0;
+    border: none;
+    border-bottom: solid $secondary;
+    background: transparent;
+}
+
+SetupScreen CollapsibleItem:last-of-type {
+    border-bottom: none;
+}
+
+SetupScreen CollapsibleItem:focus {
+    border: none;
+    border-bottom: solid $secondary;
+    background: transparent;
+}
+
+SetupScreen CollapsibleItem:focus:last-of-type {
+    border-bottom: none;
+}
+
+SetupScreen CollapsibleItem .collapsible-header {
+    background: transparent;
+}
+
+SetupScreen CollapsibleItem:focus .collapsible-header {
+    background: $primary;
+}
+
+SetupScreen CollapsibleItem .collapsible-header-text {
+    color: $text;
+}
+
+SetupScreen CollapsibleItem:focus .collapsible-header-text {
+    color: $text;
+    text-style: bold;
+}
+
+SetupScreen CollapsibleItem .collapsible-content {
+    background: $surface;
+    border-top: dashed $secondary;
+    padding: 1 2;
+}
+
+SetupScreen CollapsibleItem .collapsible-content .info-text {
+    color: $secondary;
+    margin-bottom: 1;
 }

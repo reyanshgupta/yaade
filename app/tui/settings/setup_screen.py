@@ -12,6 +12,33 @@ from textual.binding import Binding
 
 from ..screens.modals import StorageConfigScreen, SetupResultScreen, ThemeSelectScreen
 from ..utils import ConfigManager, SetupRunner
+from ..widgets import CollapsibleItem
+
+
+# MCP Integration configuration - easy to extend with new integrations!
+INTEGRATIONS = [
+    {
+        "title": "Claude Desktop",
+        "description": "Configure Yaade as an MCP server for Claude Desktop app",
+        "button_text": "Setup for Claude Desktop",
+        "button_id": "setup_claude_desktop",
+        "client_type": "claude-desktop",
+    },
+    {
+        "title": "Claude Code",
+        "description": "Configure Yaade as an MCP server for Claude Code CLI",
+        "button_text": "Setup for Claude Code",
+        "button_id": "setup_claude_code",
+        "client_type": "claude-code",
+    },
+    {
+        "title": "OpenCode",
+        "description": "Configure Yaade as an MCP server for OpenCode",
+        "button_text": "Setup for OpenCode",
+        "button_id": "setup_opencode",
+        "client_type": "opencode",
+    },
+]
 
 
 class SetupScreen(ModalScreen[bool]):
@@ -139,17 +166,25 @@ class SetupScreen(ModalScreen[bool]):
         super().__init__()
         self.config_data = config_data
         self.is_first_run = is_first_run
+        # Build a mapping from button_id to client_type for dynamic handling
+        self._button_to_client = {
+            integration["button_id"]: integration["client_type"]
+            for integration in INTEGRATIONS
+        }
 
     def on_mount(self) -> None:
-        """Set initial focus on the first button."""
-        self.query_one("#setup_claude_desktop", Button).focus()
+        """Set initial focus on the first collapsible item."""
+        # Focus the first CollapsibleItem instead of a button
+        first_item = self.query(CollapsibleItem).first()
+        if first_item:
+            first_item.focus()
 
     def action_focus_previous(self) -> None:
-        """Move focus to previous button."""
+        """Move focus to previous focusable element."""
         self.focus_previous()
 
     def action_focus_next(self) -> None:
-        """Move focus to next button."""
+        """Move focus to next focusable element."""
         self.focus_next()
 
     def compose(self) -> ComposeResult:
@@ -179,30 +214,17 @@ class SetupScreen(ModalScreen[bool]):
                     )
                     yield Button("Change Storage Location", id="storage_config", variant="default")
 
-            # MCP Integration section
-            with Vertical(classes="section"):
-                yield Label("Claude Desktop", classes="section-title")
-                yield Label(
-                    "Configure Yaade as an MCP server for Claude Desktop app",
-                    classes="info-text"
-                )
-                yield Button("Setup for Claude Desktop", id="setup_claude_desktop", variant="primary")
-
-            with Vertical(classes="section"):
-                yield Label("Claude Code", classes="section-title")
-                yield Label(
-                    "Configure Yaade as an MCP server for Claude Code CLI",
-                    classes="info-text"
-                )
-                yield Button("Setup for Claude Code", id="setup_claude_code", variant="primary")
-
-            with Vertical(classes="section"):
-                yield Label("OpenCode", classes="section-title")
-                yield Label(
-                    "Configure Yaade as an MCP server for OpenCode",
-                    classes="info-text"
-                )
-                yield Button("Setup for OpenCode", id="setup_opencode", variant="primary")
+            # MCP Integrations as collapsible accordion
+            # Compact display - expands on focus, collapses on blur
+            with Vertical(classes="integrations-container"):
+                yield Label("Select an integration to configure:", classes="integrations-title")
+                for integration in INTEGRATIONS:
+                    yield CollapsibleItem(
+                        title=integration["title"],
+                        description=integration["description"],
+                        button_text=integration["button_text"],
+                        button_id=integration["button_id"],
+                    )
 
             with Horizontal(id="buttons"):
                 if self.is_first_run:
@@ -236,26 +258,21 @@ class SetupScreen(ModalScreen[bool]):
         else:
             self.app.notify("Failed to update storage location", severity="error")
 
-    @on(Button.Pressed, "#setup_claude_desktop")
-    async def handle_setup_claude_desktop(self) -> None:
-        """Handle Claude Desktop setup."""
-        await self._run_setup("claude-desktop")
-
-    @on(Button.Pressed, "#setup_claude_code")
-    async def handle_setup_claude_code(self) -> None:
-        """Handle Claude Code setup."""
-        await self._run_setup("claude-code")
-
-    @on(Button.Pressed, "#setup_opencode")
-    async def handle_setup_opencode(self) -> None:
-        """Handle OpenCode setup."""
-        await self._run_setup("opencode")
+    @on(Button.Pressed)
+    async def handle_integration_setup(self, event: Button.Pressed) -> None:
+        """Handle any integration setup button press dynamically."""
+        button_id = event.button.id
+        
+        # Check if this is an integration button
+        if button_id in self._button_to_client:
+            client_type = self._button_to_client[button_id]
+            await self._run_setup(client_type)
 
     async def _run_setup(self, client_type: str) -> None:
         """Run setup for the specified client type.
         
         Args:
-            client_type: Either 'claude-desktop', 'claude-code', or 'opencode'
+            client_type: The client type identifier (e.g., 'claude-desktop')
         """
         display_name = SetupRunner.get_client_display_name(client_type)
         self.app.notify(f"Running {display_name} setup script...", severity="information")
@@ -263,8 +280,14 @@ class SetupScreen(ModalScreen[bool]):
         result = SetupRunner.run_setup(client_type)
         
         if result.error:
-            self.app.notify(result.error, severity="error")
+            self.app.notify(f"{display_name} setup failed: {result.error}", severity="error")
             return
+        
+        # Notify user of completion status
+        if result.success:
+            self.app.notify(f"{display_name} setup completed successfully!", severity="information")
+        else:
+            self.app.notify(f"{display_name} setup completed with issues", severity="warning")
         
         await self.app.push_screen(
             SetupResultScreen(f"{display_name} Setup", result.output, result.success)

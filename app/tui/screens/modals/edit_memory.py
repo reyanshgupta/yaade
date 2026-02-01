@@ -73,8 +73,8 @@ class EditMemoryScreen(ModalScreen[Optional[EditMemoryResult]]):
                 id="importance"
             )
             with Horizontal(id="buttons", classes="modal-buttons"):
-                yield Button("[ SAVE ]", variant="primary", id="save")
-                yield Button("[ CANCEL ]", variant="default", id="cancel")
+                yield Button("Save", variant="primary", id="save")
+                yield Button("Cancel", variant="default", id="cancel")
 
     def on_mount(self) -> None:
         """Set initial focus on content input."""

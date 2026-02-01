@@ -48,8 +48,8 @@ class AddMemoryScreen(ModalScreen[Optional[AddMemoryResult]]):
             yield Label("Importance (0-10):")
             yield Input(placeholder="1.0", id="importance", value="1.0")
             with Horizontal(id="buttons", classes="modal-buttons"):
-                yield Button("[ ADD ]", variant="primary", id="add")
-                yield Button("[ CANCEL ]", variant="default", id="cancel")
+                yield Button("Add", variant="primary", id="add")
+                yield Button("Cancel", variant="default", id="cancel")
 
     def on_mount(self) -> None:
         """Set initial focus on content input."""

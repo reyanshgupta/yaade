@@ -31,6 +31,7 @@ MainMenuScreen {
     text-opacity: 70%;
 }
 
+/* Menu buttons - just layout, let Textual handle colors */
 .menu-button {
     width: 100%;
     margin-bottom: 1;

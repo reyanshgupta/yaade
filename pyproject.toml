@@ -5,11 +5,10 @@ description = "Yaade (यादें) - Local MCP-compatible memory storage for
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Yaade Contributors"}
+    {name = "Reyansh Gupta"}
 ]
 keywords = ["ai", "memory", "mcp", "claude", "vector-database", "embeddings"]
 classifiers = [
-    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",

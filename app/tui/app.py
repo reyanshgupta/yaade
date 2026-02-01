@@ -53,18 +53,7 @@ class Yaade(App):
         color: $secondary;
     }
 
-    /* Button styling */
-    Button {
-        border: tall $primary;
-    }
-
-    Button:hover {
-        border: tall $secondary;
-    }
-
-    Button:focus {
-        text-style: bold reverse;
-    }
+    /* Let Textual handle button styling with defaults */
 
     /* Input styling */
     Input {

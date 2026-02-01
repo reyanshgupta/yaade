@@ -147,27 +147,27 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
 
     #swatch-primary {
         background: $primary;
-        color: #0a0a12;
+        color: $text;
     }
 
     #swatch-secondary {
         background: $secondary;
-        color: #0a0a12;
+        color: $text;
     }
 
     #swatch-accent {
         background: $accent;
-        color: #0a0a12;
+        color: $text;
     }
 
     #swatch-success {
         background: $success;
-        color: #0a0a12;
+        color: $text;
     }
 
     #swatch-error {
         background: $error;
-        color: #0a0a12;
+        color: $text;
     }
 
     #preview-table {
@@ -180,65 +180,33 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
         height: auto;
     }
 
-    #preview-buttons Button {
-        height: auto;
-        margin-right: 1;
-    }
-
-    #preview-buttons Button.-primary {
-        background: $primary;
-    }
-
-    #preview-buttons Button.-primary > .button--label {
-        color: $foreground;
-        text-style: bold;
-    }
-
-    #preview-buttons Button.-default {
-        background: $panel;
-        border: tall $primary;
-    }
-
-    #preview-buttons Button.-default > .button--label {
-        color: $text;
-    }
-
-    #preview-buttons Button.-error {
-        background: $error;
-    }
-
-    #preview-buttons Button.-error > .button--label {
-        color: $foreground;
-        text-style: bold;
-    }
-
     #buttons {
         height: auto;
         margin-top: 1;
     }
 
-    #buttons Button {
-        height: 3;
-        margin: 0 1;
-        min-width: 16;
+    /* Button styling */
+    Button {
+        height: auto;
+        min-width: 12;
     }
 
-    #apply {
-        background: $success;
-    }
-
-    #apply > .button--label {
-        color: $foreground;
+    Button.-primary {
+        color: $background;
+        background: $primary;
         text-style: bold;
     }
 
-    #cancel {
-        background: $panel;
+    Button.-default {
+        color: $text;
+        background: $surface;
         border: tall $primary;
     }
 
-    #cancel > .button--label {
-        color: $text;
+    Button.-error {
+        color: $background;
+        background: $error;
+        text-style: bold;
     }
 
     Button:focus {
@@ -251,7 +219,7 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
 
     OptionList > .option-list--option-highlighted {
         background: $primary;
-        color: #0a0a12;
+        color: $text;
         text-style: bold;
     }
 
@@ -310,9 +278,9 @@ class ThemeSelectScreen(ModalScreen[Optional[str]]):
                         yield Button("Default", variant="default")
                         yield Button("Error", variant="error")
 
-            with Horizontal(id="buttons"):
-                yield Button("[ APPLY ]", variant="primary", id="apply")
-                yield Button("[ CANCEL ]", variant="default", id="cancel")
+            with Horizontal(id="buttons", classes="modal-buttons"):
+                yield Button("Apply", variant="primary", id="apply")
+                yield Button("Cancel", variant="default", id="cancel")
         yield Footer()
 
     def on_mount(self) -> None:
