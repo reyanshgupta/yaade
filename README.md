@@ -1,6 +1,6 @@
 # Yaade - Memory Storage for AI Agents
 
-**Yaade** (यादें) - Hindi for "memories" - is a local MCP-compatible server that provides centralized memory storage for multiple AI tools including Claude Desktop, Claude Code, and other MCP-compatible clients.
+**Yaade** (यादें) - Hindi for "memories" - is a local MCP-compatible server that provides centralized memory storage for AI tools including Claude Desktop, Claude Code, OpenCode, and other MCP-compatible clients.
 
 ## Features
 
@@ -9,36 +9,39 @@
 - **MCP Compatible**: Full Model Context Protocol (MCP) v2025-06-18 support
 - **Local-First**: No cloud dependencies, all data stays on your machine
 - **TUI Interface**: Beautiful terminal UI for memory management
-- **Easy Integration**: Works seamlessly with Claude Desktop and Claude Code
-
-## Technology Stack
-
-- **Protocol**: MCP (Model Context Protocol) with stdio/HTTP transports
-- **Vector Database**: ChromaDB for semantic search and embedding storage
-- **Embeddings**: sentence-transformers (all-MiniLM-L6-v2) for local text encoding
-- **Configuration**: Pydantic v2 with environment variable support
-- **TUI**: Textual framework for terminal interface
-- **Package Management**: UV for fast dependency management
+- **Multiple Embedding Models**: Choose from 8 sentence-transformer models
+- **Memory Cleanup**: Detect duplicates and consolidate related memories
+- **Theme Support**: 3 built-in cyberpunk themes with live preview
+- **Easy Integration**: Automated setup scripts for Claude Desktop, Claude Code, and OpenCode
 
 ## Installation
 
-### Prerequisites
+### Option 1: Install from PyPI (Recommended)
 
-- Python 3.12+
-- [UV package manager](https://docs.astral.sh/uv/getting-started/installation/)
+```bash
+pip install yaade
+```
 
-### Setup
+### Option 2: Install from Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/yaade.git
+git clone https://github.com/reyanshgupta/yaade.git
 cd yaade
 
-# Install dependencies with UV
-uv sync
+# Run the install script
+./install.sh
+```
 
-# Launch Yaade TUI
-uv run yaade
+The install script will:
+- Check Python version (3.12+ required)
+- Install [uv](https://docs.astral.sh/uv/) package manager if not present
+- Install all dependencies
+- Create a global `yaade` command
+
+To uninstall the source installation:
+```bash
+./uninstall.sh
 ```
 
 ## Quick Start
@@ -46,13 +49,13 @@ uv run yaade
 ### Launch the TUI
 
 ```bash
-uv run yaade
+yaade
 ```
 
-This opens the main interface where you can:
+This opens the interactive terminal interface where you can:
 - Manage memories (add, edit, delete, search)
-- Configure storage location
-- Set up MCP integration with Claude Desktop/Code
+- Configure MCP integration with AI clients
+- Select embedding models
 - Customize themes
 
 ### TUI Navigation
@@ -63,20 +66,61 @@ This opens the main interface where you can:
 │        Memory Storage for AI            │
 ├─────────────────────────────────────────┤
 │  [1] Memory Management                  │
-│  [2] Settings                           │
+│  [2] Setup                              │
+│  [3] Settings                           │
 │  [Q] Quit                               │
 └─────────────────────────────────────────┘
 ```
 
-### Automated Setup Scripts
+**Keyboard shortcuts:**
+- `1`, `2`, `3` - Navigate to menu items
+- `j`/`k` or `↑`/`↓` - Move selection
+- `Enter` - Select item
+- `Ctrl+P` - Switch themes
+- `Q` - Quit
 
-From the Settings menu in the TUI, you can run setup scripts for:
+### Memory Management
 
-**Claude Desktop**: Configures `~/Library/Application Support/Claude/claude_desktop_config.json`
+The Memory Management screen displays all stored memories in a table with:
+- ID, content preview, type, and tags
+- Statistics panel showing memory count, model, and storage size
 
-**Claude Code**: Configures `~/.claude.json`
+**Operations:**
+- `a` - Add new memory
+- `e` - Edit selected memory
+- `d` - Delete selected memory
+- `r` - Refresh list
 
-Or run manually:
+## CLI Commands
+
+```bash
+yaade                    # Launch the TUI (default)
+yaade serve              # Run MCP server for Claude integration
+yaade --version, -v      # Show version
+yaade --help             # Show help
+```
+
+### Model Management
+
+```bash
+yaade download-model                     # Show help
+yaade download-model list                # List all available models with cache status
+yaade download-model download <model>    # Download a specific model
+yaade download-model check <model>       # Check if model is cached
+yaade download-model all                 # Download all supported models
+yaade download-model all --force         # Force re-download all models
+```
+
+## MCP Integration
+
+### Automated Setup (Recommended)
+
+From the TUI, navigate to **Setup** to automatically configure:
+- Claude Desktop (macOS/Windows)
+- Claude Code (macOS/Windows)
+- OpenCode (macOS/Windows)
+
+Or run the setup scripts directly:
 
 ```bash
 # Claude Desktop (macOS)
@@ -84,27 +128,35 @@ Or run manually:
 
 # Claude Code (macOS)
 ./setup/claude-code/setup-mcp-macos.sh
+
+# OpenCode (macOS)
+./setup/opencode/setup-mcp-macos.sh
 ```
 
-## CLI Commands
+### Manual Configuration
 
-```bash
-yaade              # Launch the TUI (default)
-yaade serve        # Run MCP server (headless mode for Claude integration)
-yaade --help       # Show help
-yaade --version    # Show version
-```
+#### Claude Desktop
 
-## Manual Claude Configuration
-
-### Claude Desktop
-
-Add this to your Claude Desktop config:
-
-**Location**: 
+**Config location:**
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Roaming\Claude\claude_desktop_config.json`
 
+**If installed via pip:**
+```json
+{
+  "mcpServers": {
+    "yaade": {
+      "command": "yaade",
+      "args": ["serve"],
+      "env": {
+        "YAADE_LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}
+```
+
+**If installed from source:**
 ```json
 {
   "mcpServers": {
@@ -119,92 +171,158 @@ Add this to your Claude Desktop config:
 }
 ```
 
+#### Claude Code
+
+**Config location:** `~/.claude.json`
+
+**If installed via pip:**
+```json
+{
+  "mcpServers": {
+    "yaade": {
+      "type": "stdio",
+      "command": "yaade",
+      "args": ["serve"],
+      "env": {}
+    }
+  }
+}
+```
+
+**If installed from source:**
+```json
+{
+  "mcpServers": {
+    "yaade": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "yaade", "serve"],
+      "cwd": "/path/to/yaade",
+      "env": {}
+    }
+  }
+}
+```
+
 ### Using Memory with Claude
 
-Once configured, you can use natural language:
+Once configured, interact naturally:
 
-- **Store a memory**: "Remember that I prefer TypeScript over JavaScript"
-- **Search memories**: "What do you remember about my programming preferences?"
-- **Check status**: Ask Claude to check the memory server health
+- **Store**: "Remember that I prefer TypeScript over JavaScript"
+- **Search**: "What do you remember about my programming preferences?"
+- **Check**: "Check the memory server health"
 
 ## Available MCP Tools
 
-| Tool | Description | Parameters |
-|------|-------------|------------|
-| `add_memory` | Store new memory with embedding | `content`, `memory_type`, `source`, `tags`, `importance`, `metadata` |
-| `search_memories` | Semantic search across memories | `query`, `limit`, `filter_tags` |
-| `get_memory` | Retrieve specific memory by ID | `memory_id` |
-| `delete_memory` | Remove memory from storage | `memory_id` |
-| `health_check` | Check server status and statistics | None |
-| `analyze_memory_cleanup` | Find duplicate/similar memories | `similarity_threshold`, `consolidation_threshold` |
-| `execute_memory_cleanup` | Execute cleanup with confirmation | `actions_to_execute`, `confirm_deletion` |
+| Tool | Description |
+|------|-------------|
+| `add_memory` | Store new memory with semantic embedding |
+| `search_memories` | Semantic search across memories |
+| `get_memory` | Retrieve specific memory by ID |
+| `delete_memory` | Remove memory from storage |
+| `health_check` | Check server status and statistics |
+| `analyze_memory_cleanup` | Find duplicate/similar memories (non-destructive) |
+| `execute_memory_cleanup` | Execute cleanup with confirmation |
+
+### Tool Parameters
+
+**add_memory**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `content` | string | Yes | Memory content to store |
+| `memory_type` | string | No | text, image, document, conversation, code |
+| `source` | string | No | claude, chatgpt, cursor, browser, api, manual |
+| `tags` | list | No | Categorization tags |
+| `importance` | float | No | Score from 0.0 to 10.0 |
+| `metadata` | dict | No | Additional metadata |
+
+**search_memories**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | Yes | Search query |
+| `limit` | int | No | Max results (default: 10) |
+| `filter_tags` | list | No | Filter by tags |
+
+**analyze_memory_cleanup**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `similarity_threshold` | float | No | Duplicate detection threshold (default: 0.85) |
+| `consolidation_threshold` | float | No | Consolidation threshold (default: 0.70) |
+
+**execute_memory_cleanup**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `actions_to_execute` | list | Yes | exact_duplicates, near_duplicates, consolidation |
+| `analysis_id` | string | No | Reference to previous analysis |
+| `confirm_deletion` | bool | Yes | Must be True to proceed |
+
+## Embedding Models
+
+Yaade supports 8 sentence-transformer models. Select from the TUI Settings or set via environment variable.
+
+| Model ID | Dimensions | Size | Speed | Quality | Best For |
+|----------|------------|------|-------|---------|----------|
+| `all-MiniLM-L6-v2` (default) | 384 | 80 MB | ★★★ | ★★★ | General use, limited hardware |
+| `all-MiniLM-L12-v2` | 384 | 120 MB | ★★★ | ★★★★ | Better accuracy, good performance |
+| `all-mpnet-base-v2` | 768 | 420 MB | ★ | ★★★★★ | Maximum accuracy (4GB+ RAM) |
+| `paraphrase-MiniLM-L6-v2` | 384 | 80 MB | ★★★ | ★★★ | Finding similar content |
+| `multi-qa-MiniLM-L6-cos-v1` | 384 | 80 MB | ★★★ | ★★★ | Q&A and information retrieval |
+| `bge-small-en-v1.5` | 384 | 130 MB | ★★★ | ★★★★ | High quality, good efficiency |
+| `bge-base-en-v1.5` | 768 | 440 MB | ★★ | ★★★★★ | Best-in-class accuracy |
 
 ## Configuration
 
-Configuration via environment variables. Create a `.env` file or set these:
-
-```bash
-# Storage Configuration
-YAADE_DATA_DIR=.yaade
-
-# Embedding Configuration  
-YAADE_EMBEDDING_MODEL_NAME=all-MiniLM-L6-v2
-YAADE_EMBEDDING_BATCH_SIZE=32
-YAADE_EMBEDDING_MAX_SEQ_LENGTH=512
-
-# Server Configuration
-YAADE_HOST=localhost
-YAADE_PORT=8000
-YAADE_LOG_LEVEL=INFO
-```
-
-### Configuration Options
+Configuration via environment variables or `.env` file in the project directory.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `YAADE_DATA_DIR` | `.yaade` | Base directory for data storage |
-| `YAADE_EMBEDDING_MODEL_NAME` | `all-MiniLM-L6-v2` | Sentence transformer model |
+| `YAADE_EMBEDDING_MODEL_NAME` | `all-MiniLM-L6-v2` | Embedding model to use |
 | `YAADE_EMBEDDING_BATCH_SIZE` | `32` | Batch size for embedding generation |
-| `YAADE_LOG_LEVEL` | `INFO` | Logging level |
+| `YAADE_EMBEDDING_MAX_SEQ_LENGTH` | `512` | Max tokens per input |
+| `YAADE_HOST` | `localhost` | Server host |
+| `YAADE_PORT` | `8000` | Server port |
+| `YAADE_LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `YAADE_THEME` | `cyberpunk` | TUI theme (cyberpunk, cyberpunk_soft, neon_nights) |
+
+### Data Storage
+
+- **Default location**: `.yaade/`
+- **Vector database**: `.yaade/chroma/`
+- All data stored locally. No external services or telemetry.
+
+## Themes
+
+Three built-in themes available via Settings or `Ctrl+P`:
+
+| Theme | Description |
+|-------|-------------|
+| **Cyberpunk** (default) | Hot magenta + electric cyan, high contrast |
+| **Cyberpunk Soft** | Subdued version for extended use |
+| **Neon Nights** | Purple + teal focus |
 
 ## Architecture
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Claude        │    │     Yaade        │    │  Storage        │
-│   Desktop/Code  │◄──►│                  │◄──►│                 │
-│                 │    │  - FastMCP       │    │ - ChromaDB      │
-│  Other MCP      │    │  - Tools         │    │ - Embeddings    │
-│  Clients        │    │  - Resources     │    │ - Metadata      │
+│   AI Clients    │    │     Yaade        │    │  Storage        │
+│                 │    │                  │    │                 │
+│  Claude Desktop │◄──►│  FastMCP Server  │◄──►│  ChromaDB       │
+│  Claude Code    │    │  MCP Tools       │    │  Embeddings     │
+│  OpenCode       │    │  Memory Service  │    │  Metadata       │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-### Components
+### Technology Stack
 
-- **FastMCP Server**: Handles MCP protocol communication
-- **Vector Store**: ChromaDB for semantic search capabilities  
-- **Embedding Service**: Local sentence-transformers for text encoding
-- **TUI**: Textual-based terminal interface for management
-- **Configuration**: Environment-based settings management
+- **Protocol**: MCP (Model Context Protocol) with stdio transport
+- **Vector Database**: ChromaDB for semantic search
+- **Embeddings**: sentence-transformers for local text encoding
+- **Configuration**: Pydantic v2 with environment variable support
+- **TUI**: Textual framework for terminal interface
+- **Package Management**: pip or UV
 
-## Data Storage
-
-- **Default Location**: `.yaade/`
-- **Vector Database**: `.yaade/chroma/`
-- **Logs**: Console output (configurable)
-
-All data is stored locally on your machine. No data is sent to external services.
-
-## Privacy & Security
-
-- **Local-First**: All processing happens on your machine
-- **No Telemetry**: ChromaDB telemetry is disabled
-- **No External Calls**: Embeddings generated locally
-- **Configurable**: Full control over data storage location
-
-## Development
-
-### Project Structure
+## Project Structure
 
 ```
 yaade/
@@ -212,16 +330,73 @@ yaade/
 │   ├── main.py              # FastMCP server entry point
 │   ├── cli.py               # CLI entry point
 │   ├── models/              # Pydantic data models
-│   ├── storage/             # Storage backends (ChromaDB)
+│   │   ├── config.py        # Server configuration
+│   │   ├── memory.py        # Memory models
+│   │   └── embedding_models.py  # Model definitions
+│   ├── storage/             # Storage backends
+│   │   └── vector_store.py  # ChromaDB integration
 │   ├── search/              # Embedding services
+│   │   ├── embeddings.py    # Sentence-transformer service
+│   │   └── model_downloader.py  # Model management
 │   ├── services/            # Business logic
+│   │   └── memory_cleanup.py    # Duplicate detection
 │   └── tui/                 # Terminal UI
-├── setup/                   # Setup scripts
+│       ├── app.py           # Main TUI application
+│       ├── themes.py        # Color themes
+│       ├── screens/         # UI screens
+│       ├── settings/        # Settings screens
+│       └── widgets/         # Custom components
+├── setup/                   # Client setup scripts
 │   ├── claude-desktop/
-│   └── claude-code/
-├── pyproject.toml
-└── README.md
+│   ├── claude-code/
+│   └── opencode/
+├── tests/                   # Test suite
+├── .agents/                 # AI agent configurations
+│   ├── AGENTS.md            # Central template
+│   ├── CLAUDE.md            # Claude Code
+│   ├── .cursorrules         # Cursor
+│   └── ...                  # Other AI tools
+├── install.sh               # Installation script
+├── uninstall.sh             # Uninstallation script
+└── pyproject.toml           # Project configuration
 ```
+
+## Development
+
+### Prerequisites
+
+- Python 3.12+
+- [UV package manager](https://docs.astral.sh/uv/getting-started/installation/)
+
+### Setup
+
+```bash
+git clone https://github.com/reyanshgupta/yaade.git
+cd yaade
+uv sync
+```
+
+### Running Tests
+
+```bash
+uv run pytest
+uv run pytest --cov=app  # With coverage
+```
+
+### AI Agent Setup
+
+For contributors using AI coding assistants, configuration files are available in `.agents/`:
+
+```bash
+# Setup symlinks for common tools
+./.agents/setup.sh
+
+# Or manually symlink specific tools
+ln -sf .agents/CLAUDE.md CLAUDE.md
+ln -sf .agents/.cursorrules .cursorrules
+```
+
+Supported tools: Claude Code, Cursor, OpenCode, Windsurf, Cody, Aider, Antigravity, Continue
 
 ### Contributing
 
@@ -233,21 +408,32 @@ yaade/
 
 ## Troubleshooting
 
-### Common Issues
+### TUI won't start
+- Ensure Python 3.12+ is installed
+- If installed via pip: `pip install --upgrade yaade`
+- If installed from source: run `./install.sh` again
 
-**TUI won't start**
-- Check Python version (3.12+ required)
-- Verify UV is installed and up to date
-- Run `uv sync` to ensure dependencies are installed
-
-**Claude not connecting**
-- Verify config file path is correct
-- Check that `cwd` points to your project directory
+### Claude not connecting
+- Verify config file path is correct for your OS
+- Ensure `command` matches your installation method
 - Restart Claude Desktop/Code after config changes
+- Check logs: set `YAADE_LOG_LEVEL=DEBUG`
 
-**Import errors**
-- Run `uv sync` to ensure dependencies are installed
-- Check that you're in the correct directory
+### Embedding model issues
+- Download model manually: `yaade download-model download all-MiniLM-L6-v2`
+- Check cache: `yaade download-model check all-MiniLM-L6-v2`
+- Ensure sufficient disk space (~80-440 MB per model)
+
+### Import errors
+- pip install: `pip install --upgrade yaade`
+- Source install: `uv sync` in project directory
+
+## Privacy & Security
+
+- **Local-First**: All processing happens on your machine
+- **No Telemetry**: ChromaDB telemetry explicitly disabled
+- **No External Calls**: Embeddings generated locally
+- **Full Control**: Configure data storage location
 
 ## License
 
@@ -260,5 +446,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [sentence-transformers](https://www.sbert.net/) for embeddings
 - [Textual](https://textual.textualize.io/) for the TUI framework
 - [UV](https://docs.astral.sh/uv/) for package management
-
----
