@@ -1,5 +1,12 @@
 """Main Textual TUI application for memory management."""
 
+# Set environment variables BEFORE importing torch/transformers to avoid
+# file descriptor issues with Textual's event loop
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+
 from pathlib import Path
 from typing import Optional
 
@@ -12,6 +19,29 @@ from .screens.modals import ThemeSelectScreen
 from .settings import SetupScreen, SettingsScreen
 from .themes import CUSTOM_THEMES
 from .utils import ConfigManager
+
+
+# Global manager instance - initialized before Textual to avoid file descriptor issues
+_global_manager: Optional[MemoryManager] = None
+
+
+def _init_manager() -> MemoryManager:
+    """Initialize and preload the memory manager before Textual starts.
+
+    This must be called before creating the Yaade app to avoid PyTorch
+    file descriptor conflicts with Textual's event loop.
+    """
+    global _global_manager
+    if _global_manager is None:
+        _global_manager = MemoryManager()
+        # Preload the model NOW, before Textual starts
+        try:
+            _global_manager.embedding_service._ensure_model_loaded()
+            # Do a test encoding to ensure everything is fully initialized
+            _global_manager.embedding_service._encode_sync("warmup")
+        except Exception:
+            pass  # Model will try to load on first use
+    return _global_manager
 
 
 class Yaade(App):
@@ -79,13 +109,18 @@ class Yaade(App):
         "memory_screen": MemoryManagementScreen,
     }
 
-    def __init__(self):
-        """Initialize the TUI."""
+    def __init__(self, manager: Optional[MemoryManager] = None):
+        """Initialize the TUI.
+
+        Args:
+            manager: Pre-initialized MemoryManager (recommended to avoid
+                    PyTorch file descriptor issues with Textual)
+        """
         super().__init__()
         # Check first run BEFORE creating MemoryManager (which creates directories)
         self.is_first_run = self._check_first_run()
-        # Now initialize MemoryManager
-        self.manager = MemoryManager()
+        # Use provided manager or get from global (initialized before Textual)
+        self.manager = manager if manager is not None else _init_manager()
         # Load saved theme
         self._saved_theme = self._load_theme()
 
@@ -208,5 +243,8 @@ class Yaade(App):
 
 def run_tui() -> None:
     """Run the TUI application."""
-    app = Yaade()
+    # Initialize and preload the manager BEFORE creating the Textual app
+    # This avoids PyTorch file descriptor conflicts with Textual's event loop
+    manager = _init_manager()
+    app = Yaade(manager=manager)
     app.run()

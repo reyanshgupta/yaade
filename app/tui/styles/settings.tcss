@@ -282,3 +282,73 @@ SetupScreen CollapsibleItem .collapsible-content .info-text {
     color: $secondary;
     margin-bottom: 1;
 }
+
+
+/* === SettingsScreen Collapsible Styles === */
+
+/* Settings container for collapsible items */
+.settings-container {
+    height: auto;
+    width: 100%;
+    border: solid $secondary;
+    background: $panel;
+    margin-bottom: 1;
+}
+
+.settings-label {
+    height: auto;
+    color: $secondary;
+    text-style: italic;
+    margin-bottom: 1;
+    padding: 0 1;
+}
+
+/* CollapsibleItem overrides for SettingsScreen */
+SettingsScreen CollapsibleItem {
+    margin-bottom: 0;
+    border: none;
+    border-bottom: solid $secondary;
+    background: transparent;
+}
+
+SettingsScreen CollapsibleItem:last-of-type {
+    border-bottom: none;
+}
+
+SettingsScreen CollapsibleItem:focus {
+    border: none;
+    border-bottom: solid $secondary;
+    background: transparent;
+}
+
+SettingsScreen CollapsibleItem:focus:last-of-type {
+    border-bottom: none;
+}
+
+SettingsScreen CollapsibleItem .collapsible-header {
+    background: transparent;
+}
+
+SettingsScreen CollapsibleItem:focus .collapsible-header {
+    background: $primary;
+}
+
+SettingsScreen CollapsibleItem .collapsible-header-text {
+    color: $text;
+}
+
+SettingsScreen CollapsibleItem:focus .collapsible-header-text {
+    color: $text;
+    text-style: bold;
+}
+
+SettingsScreen CollapsibleItem .collapsible-content {
+    background: $surface;
+    border-top: dashed $secondary;
+    padding: 1 2;
+}
+
+SettingsScreen CollapsibleItem .collapsible-content .info-text {
+    color: $secondary;
+    margin-bottom: 1;
+}

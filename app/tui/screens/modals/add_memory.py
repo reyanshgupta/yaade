@@ -5,7 +5,7 @@ from typing import Optional, List, Tuple
 
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
-from textual.widgets import Label, Button, Input
+from textual.widgets import Label, Button, Input, TextArea
 from textual.screen import ModalScreen
 from textual import on
 from textual.binding import Binding
@@ -30,6 +30,17 @@ class AddMemoryScreen(ModalScreen[Optional[AddMemoryResult]]):
     #buttons Button {
         min-width: 16;
     }
+
+    #content-area {
+        height: 10;
+        border: tall $primary;
+        background: $panel;
+    }
+
+    #content-area:focus {
+        border: tall $secondary;
+        background: $surface;
+    }
     """
 
     BINDINGS = [
@@ -42,7 +53,12 @@ class AddMemoryScreen(ModalScreen[Optional[AddMemoryResult]]):
         with Container(id="dialog", classes="modal-dialog"):
             yield Label("[ ADD NEW MEMORY ]", id="title", classes="modal-title")
             yield Label("Content:")
-            yield Input(placeholder="Enter memory content...", id="content")
+            yield TextArea(
+                "",
+                id="content-area",
+                soft_wrap=True,
+                tab_behavior="focus",
+            )
             yield Label("Tags (comma-separated):")
             yield Input(placeholder="tag1, tag2, tag3", id="tags")
             yield Label("Importance (0-10):")
@@ -53,16 +69,16 @@ class AddMemoryScreen(ModalScreen[Optional[AddMemoryResult]]):
 
     def on_mount(self) -> None:
         """Set initial focus on content input."""
-        self.query_one("#content", Input).focus()
+        self.query_one("#content-area", TextArea).focus()
 
     @on(Button.Pressed, "#add")
     async def handle_add(self) -> None:
         """Handle add button press."""
-        content_input = self.query_one("#content", Input)
+        content_area = self.query_one("#content-area", TextArea)
         tags_input = self.query_one("#tags", Input)
         importance_input = self.query_one("#importance", Input)
 
-        content = content_input.value.strip()
+        content = content_area.text.strip()
         if not content:
             self.app.notify("Content cannot be empty", severity="error")
             return
