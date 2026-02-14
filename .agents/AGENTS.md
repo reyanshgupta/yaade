@@ -235,7 +235,7 @@ async def new_tool(param: str) -> dict:
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `YAADE_DATA_DIR` | `.yaade` | Data storage location |
+| `YAADE_DATA_DIR` | `~/.yaade` | Data storage location (central, not per-directory) |
 | `YAADE_EMBEDDING_MODEL_NAME` | `all-MiniLM-L6-v2` | Embedding model |
 | `YAADE_EMBEDDING_BATCH_SIZE` | `32` | Batch size |
 | `YAADE_LOG_LEVEL` | `INFO` | Logging level |

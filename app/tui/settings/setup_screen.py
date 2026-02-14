@@ -205,11 +205,11 @@ class SetupScreen(ModalScreen[bool]):
                 with Vertical(classes="section"):
                     yield Label("Storage Configuration", classes="section-title")
                     yield Label(
-                        f"Current: {self.config_data.get('data_dir', 'N/A')}",
+                        f"Current: {self.config_data.get('data_dir', '~/.yaade')}",
                         classes="info-text"
                     )
                     yield Label(
-                        "Choose where to store your memories (optional - default is '.yaade')",
+                        "Storage will be created when you continue. Change path here if you prefer a different location.",
                         classes="info-text"
                     )
                     yield Button("Change Storage Location", id="storage_config", variant="default")
@@ -236,7 +236,7 @@ class SetupScreen(ModalScreen[bool]):
     @on(Button.Pressed, "#storage_config")
     async def handle_storage_config(self) -> None:
         """Handle storage configuration."""
-        current_path = self.config_data.get('data_dir', '.yaade')
+        current_path = self.config_data.get('data_dir', '~/.yaade')
 
         def callback(new_path: Optional[str]) -> None:
             if new_path is not None:

@@ -85,7 +85,7 @@ uv run pytest --cov=app # With coverage
 
 Prefix: `YAADE_`
 
-- `DATA_DIR` - Storage location (default: `.yaade`)
+- `DATA_DIR` - Storage location (default: `~/.yaade`)
 - `EMBEDDING_MODEL_NAME` - Model (default: `all-MiniLM-L6-v2`)
 - `LOG_LEVEL` - Logging (default: `INFO`)
 - `THEME` - TUI theme (default: `cyberpunk`)

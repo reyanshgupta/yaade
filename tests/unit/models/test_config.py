@@ -12,11 +12,11 @@ class TestServerConfig:
     """Tests for ServerConfig model."""
 
     def test_config_default_values(self):
-        """Test ServerConfig has correct default values."""
+        """Test ServerConfig has correct default values (central ~/.yaade)."""
         with patch.dict(os.environ, {}, clear=True):
             config = ServerConfig()
             
-            assert config.data_dir == Path(".yaade")
+            assert config.data_dir == Path.home() / ".yaade"
             assert config.embedding_model_name == "all-MiniLM-L6-v2"
             assert config.embedding_batch_size == 32
             assert config.embedding_max_seq_length == 512
@@ -26,13 +26,15 @@ class TestServerConfig:
 
     def test_config_chroma_path_property(self):
         """Test chroma_path computed property."""
-        config = ServerConfig()
+        with patch.dict(os.environ, {}, clear=True):
+            config = ServerConfig()
         expected = config.data_dir / "chroma"
         assert config.chroma_path == expected
 
     def test_config_sqlite_path_property(self):
         """Test sqlite_path computed property."""
-        config = ServerConfig()
+        with patch.dict(os.environ, {}, clear=True):
+            config = ServerConfig()
         expected = config.data_dir / "metadata.db"
         assert config.sqlite_path == expected
 
@@ -81,7 +83,8 @@ class TestServerConfig:
 
     def test_config_path_types(self):
         """Test that path properties return Path objects."""
-        config = ServerConfig()
+        with patch.dict(os.environ, {}, clear=True):
+            config = ServerConfig()
         assert isinstance(config.data_dir, Path)
         assert isinstance(config.chroma_path, Path)
         assert isinstance(config.sqlite_path, Path)
@@ -119,3 +122,10 @@ class TestServerConfig:
             with patch.dict(os.environ, {"YAADE_LOG_LEVEL": level}, clear=True):
                 config = ServerConfig()
                 assert config.log_level == level
+
+    def test_config_data_dir_expands_tilde(self):
+        """Test that ~ in YAADE_DATA_DIR is expanded to home directory."""
+        with patch.dict(os.environ, {"YAADE_DATA_DIR": "~/.yaade"}, clear=True):
+            config = ServerConfig()
+            assert config.data_dir == Path.home() / ".yaade"
+            assert config.data_dir.is_absolute()

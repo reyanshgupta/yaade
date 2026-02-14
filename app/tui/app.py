@@ -16,7 +16,7 @@ from textual.binding import Binding
 from .memory_manager import MemoryManager
 from .screens import MainMenuScreen, MemoryManagementScreen
 from .screens.modals import ThemeSelectScreen
-from .settings import SetupScreen, SettingsScreen
+from .settings import OnboardingScreen, SetupScreen, SettingsScreen
 from .themes import CUSTOM_THEMES
 from .utils import ConfigManager
 
@@ -113,15 +113,13 @@ class Yaade(App):
         """Initialize the TUI.
 
         Args:
-            manager: Pre-initialized MemoryManager (recommended to avoid
-                    PyTorch file descriptor issues with Textual)
+            manager: Pre-initialized MemoryManager, or None on first run (manager
+                    is created after onboarding completes).
         """
         super().__init__()
-        # Check first run BEFORE creating MemoryManager (which creates directories)
         self.is_first_run = self._check_first_run()
-        # Use provided manager or get from global (initialized before Textual)
-        self.manager = manager if manager is not None else _init_manager()
-        # Load saved theme
+        # Manager may be None on first run until onboarding completes
+        self.manager = manager
         self._saved_theme = self._load_theme()
 
     @staticmethod
@@ -152,9 +150,8 @@ class Yaade(App):
         self.theme = self._saved_theme
 
         if self.is_first_run:
-            # First-time setup: show setup screen directly
             config_data = self._get_config_data()
-            self.push_screen(SetupScreen(config_data, is_first_run=True), self._handle_first_run_complete)
+            self.push_screen(OnboardingScreen(config_data), self._handle_first_run_complete)
         else:
             # Already set up: go directly to memory management with menu in background
             self.push_screen("menu")
@@ -162,11 +159,16 @@ class Yaade(App):
 
     def _get_config_data(self) -> dict:
         """Get configuration data for settings screen."""
+        if self.manager is not None:
+            c = self.manager.config
+        else:
+            from ..models.config import ServerConfig
+            c = ServerConfig()
         return {
-            'data_dir': str(self.manager.config.data_dir),
-            'embedding_model': self.manager.config.embedding_model_name,
-            'host': self.manager.config.host,
-            'port': self.manager.config.port,
+            'data_dir': str(c.data_dir),
+            'embedding_model': c.embedding_model_name,
+            'host': c.host,
+            'port': c.port,
             'theme': self.theme or 'textual-dark',
         }
 
@@ -190,40 +192,28 @@ class Yaade(App):
 
     @staticmethod
     def _check_first_run() -> bool:
-        """Check if this is the first run (no directory setup completed).
+        """Check if this is the first run (chroma store not yet created or empty).
+
+        Setup is complete only when the chroma path exists and contains files
+        (actual ChromaDB data). An empty or partially-initialized chroma dir
+        is treated as first run so we show onboarding and avoid loading from
+        an incomplete database.
 
         Returns:
             True if first run (needs setup), False if already configured
         """
-        # Import here to avoid circular dependency
         from ..models.config import ServerConfig
 
-        # Load config to get the configured paths (without creating directories)
         config = ServerConfig()
-        data_dir = config.data_dir
         chroma_path = config.chroma_path
-
-        # If chroma directory exists and has files, setup is complete
-        if chroma_path.exists():
-            try:
-                # Check if directory has any files (not just .DS_Store)
-                files = [f for f in chroma_path.iterdir() if not f.name.startswith('.')]
-                if files:
-                    return False  # Already set up
-            except Exception:
-                pass
-
-        # If data directory exists and has any content, consider it set up
-        if data_dir.exists():
-            try:
-                files = [f for f in data_dir.iterdir() if not f.name.startswith('.')]
-                if files:
-                    return False  # Already set up
-            except Exception:
-                pass
-
-        # No setup found
-        return True
+        if not chroma_path.exists():
+            return True  # No chroma dir → first run
+        try:
+            # Must have at least one real file (not just .DS_Store etc.)
+            files = [f for f in chroma_path.iterdir() if not f.name.startswith('.')]
+            return not files  # Empty or only dotfiles → first run
+        except Exception:
+            return True  # Can't read dir → treat as first run
 
     def _handle_first_run_complete(self, result: Optional[bool]) -> None:
         """Handle completion of first-time setup.
@@ -232,19 +222,25 @@ class Yaade(App):
             result: True if setup completed, False/None if cancelled
         """
         if result:
-            # Setup completed, show main menu first, then memory management
-            # This ensures the user can navigate back properly
+            # Create manager now (reads .env, creates .yaade in chosen path)
+            global _global_manager
+            _global_manager = _init_manager()
+            self.manager = _global_manager
             self.push_screen("menu")
             self.push_screen("memory_screen")
         else:
-            # Setup was cancelled, exit the app
             self.exit()
 
 
 def run_tui() -> None:
     """Run the TUI application."""
-    # Initialize and preload the manager BEFORE creating the Textual app
-    # This avoids PyTorch file descriptor conflicts with Textual's event loop
-    manager = _init_manager()
-    app = Yaade(manager=manager)
+    # Check first run BEFORE creating MemoryManager (which creates .yaade and chroma)
+    is_first_run = Yaade._check_first_run()
+    if is_first_run:
+        # Onboarding: show setup first; manager is created after user continues
+        app = Yaade(manager=None)
+    else:
+        # Already set up: init manager before Textual to avoid PyTorch fd issues
+        manager = _init_manager()
+        app = Yaade(manager=manager)
     app.run()

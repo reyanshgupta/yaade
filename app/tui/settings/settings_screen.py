@@ -259,7 +259,7 @@ class SettingsScreen(ModalScreen[bool]):
 
     async def handle_storage_config(self) -> None:
         """Handle storage configuration."""
-        current_path = self.config_data.get('data_dir', '.yaade')
+        current_path = self.config_data.get('data_dir', '~/.yaade')
 
         def callback(new_path: Optional[str]) -> None:
             if new_path is not None:

@@ -1,20 +1,33 @@
 """Configuration models for Yaade."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 from typing import Optional
 
 
+def _default_data_dir() -> Path:
+    """Default data directory: ~/.yaade (central, not per-directory)."""
+    return Path.home() / ".yaade"
+
 
 class ServerConfig(BaseSettings):
     """Server configuration using environment variables."""
     
-    # Storage configuration with inline defaults
+    # Storage configuration: central ~/.yaade by default (not per-directory .yaade)
     data_dir: Path = Field(
-        default=Path(".yaade"),
+        default_factory=_default_data_dir,
         description="Base directory for data storage"
     )
+    
+    @field_validator("data_dir", mode="before")
+    @classmethod
+    def expand_data_dir(cls, v: object) -> Path:
+        """Expand ~ and convert env string to Path."""
+        if v is None:
+            return _default_data_dir()
+        p = Path(str(v)) if not isinstance(v, Path) else v
+        return p.expanduser()
     
     # Embedding configuration
     embedding_model_name: str = Field(

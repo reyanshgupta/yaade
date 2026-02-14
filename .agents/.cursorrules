@@ -52,7 +52,7 @@ uv run pytest            # Run tests
 - analyze_memory_cleanup, execute_memory_cleanup
 
 ## Environment Variables (YAADE_ prefix)
-- DATA_DIR (.yaade)
+- DATA_DIR (~/.yaade)
 - EMBEDDING_MODEL_NAME (all-MiniLM-L6-v2)
 - LOG_LEVEL (INFO)
 - THEME (cyberpunk)

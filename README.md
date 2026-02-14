@@ -276,7 +276,7 @@ Configuration via environment variables or `.env` file in the project directory.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `YAADE_DATA_DIR` | `.yaade` | Base directory for data storage |
+| `YAADE_DATA_DIR` | `~/.yaade` | Base directory for data storage (central, not per-directory) |
 | `YAADE_EMBEDDING_MODEL_NAME` | `all-MiniLM-L6-v2` | Embedding model to use |
 | `YAADE_EMBEDDING_BATCH_SIZE` | `32` | Batch size for embedding generation |
 | `YAADE_EMBEDDING_MAX_SEQ_LENGTH` | `512` | Max tokens per input |
@@ -287,8 +287,8 @@ Configuration via environment variables or `.env` file in the project directory.
 
 ### Data Storage
 
-- **Default location**: `.yaade/`
-- **Vector database**: `.yaade/chroma/`
+- **Default location**: `~/.yaade/` (central directory in your home, not per-project)
+- **Vector database**: `~/.yaade/chroma/`
 - All data stored locally. No external services or telemetry.
 
 ## Themes

@@ -492,7 +492,7 @@ def main():
     logger.info("Storage Backend:")
     logger.info("   - Vector Store: ChromaDB (semantic search)")
     logger.info("   - Embeddings: sentence-transformers (all-MiniLM-L6-v2)")
-    logger.info("   - Data Location: .yaade/")
+    logger.info("   - Data Location: ~/.yaade/")
     logger.info("Yaade ready for MCP connections!")
     
     # Run the server
