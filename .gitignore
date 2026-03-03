@@ -7,7 +7,9 @@ changelog.md
 tempCodeRunnerFile.sh
 .cursorignore
 .cursorindexingignore.yaade/
-.claude/
+.claude/*
+!.claude/commands/
+!.claude/commands/*.md
 .env.local
 
 # Byte-compiled / optimized / DLL files

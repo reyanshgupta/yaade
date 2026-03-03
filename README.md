@@ -129,6 +129,9 @@ Or run the setup scripts directly:
 # Claude Code (macOS)
 ./setup/claude-code/setup-mcp-macos.sh
 
+# Claude Code (Linux)
+./setup/claude-code/setup-mcp-linux.sh
+
 # OpenCode (macOS)
 ./setup/opencode/setup-mcp-macos.sh
 ```
@@ -211,6 +214,47 @@ Once configured, interact naturally:
 - **Store**: "Remember that I prefer TypeScript over JavaScript"
 - **Search**: "What do you remember about my programming preferences?"
 - **Check**: "Check the memory server health"
+
+---
+
+## Claude Code Skills (Slash Commands)
+
+Yaade ships with a set of Claude Code slash commands so you can manage memories directly from the editor without writing prompts by hand.
+
+### Install
+
+```bash
+# Install skills globally (available in every Claude Code session)
+./setup/claude-code/install-skills.sh
+```
+
+This copies the skill files from `.claude/commands/` to `~/.claude/commands/`. You can also keep them project-local by simply working inside the yaade directory — Claude Code picks up `.claude/commands/` automatically.
+
+> **Prerequisite:** The Yaade MCP server must be configured first. See the [Automated Setup](#automated-setup-recommended) section above.
+
+### Available Commands
+
+| Command | Usage | Description |
+|---------|-------|-------------|
+| `/remember` | `/remember <content>` | Store content as a persistent memory with auto-generated tags and importance |
+| `/recall` | `/recall <query>` | Semantic search — finds memories by meaning, not just keywords |
+| `/forget` | `/forget <id or description>` | Delete a memory (by ID or by searching a description first) |
+| `/memory-status` | `/memory-status` | Show server health, memory count, and embedding model in use |
+| `/memory-cleanup` | `/memory-cleanup` | Interactively find and remove duplicate or redundant memories |
+
+### Examples
+
+```
+/remember The auth service uses RS256 JWT tokens. Public key is at /etc/keys/auth.pub
+
+/recall JWT authentication setup
+
+/forget 3f8a2b1c-...
+
+/memory-status
+
+/memory-cleanup
+```
 
 ## Available MCP Tools
 
