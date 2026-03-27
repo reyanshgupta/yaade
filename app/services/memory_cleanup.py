@@ -240,7 +240,7 @@ class MemoryCleanupService:
             )
 
             memories = []
-            if results.get("ids") and results["ids"][0]:
+            if results.get("ids") and len(results["ids"]) > 0 and results["ids"][0]:
                 for i, memory_id in enumerate(results["ids"][0]):
                     memories.append({
                         "id": memory_id,

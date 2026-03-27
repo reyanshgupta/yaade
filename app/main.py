@@ -252,7 +252,7 @@ async def search_memories(
     
     # Format results
     formatted_results = []
-    if results.get("ids") and results["ids"][0]:
+    if results.get("ids") and len(results["ids"]) > 0 and results["ids"][0]:
         for i, memory_id in enumerate(results["ids"][0]):
             formatted_results.append({
                 "memory_id": memory_id,
