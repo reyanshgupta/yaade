@@ -26,6 +26,7 @@ class SetupRunner:
     CLIENT_TYPES = {
         "claude-desktop": "claude-desktop",
         "claude-code": "claude-code",
+        "claude-code-skill": "claude-code-skill",
         "opencode": "opencode",
         "cursor": "cursor",
     }
@@ -59,11 +60,15 @@ class SetupRunner:
         
         os_type = SetupRunner.get_os_type()
         script_dir = SetupRunner.CLIENT_TYPES[client_type]
-        
+
+        # Determine script name based on client type and OS
+        # Skills use "setup-skill-*" naming, MCP configs use "setup-mcp-*"
+        script_prefix = "setup-skill" if client_type == "claude-code-skill" else "setup-mcp"
+
         if os_type == "Darwin":  # macOS
-            script_name = "setup-mcp-macos.sh"
+            script_name = f"{script_prefix}-macos.sh"
         elif os_type == "Windows":
-            script_name = "setup-mcp-windows.bat"
+            script_name = f"{script_prefix}-windows.bat"
         else:
             raise ValueError(f"Unsupported OS for automatic setup: {os_type}")
         
@@ -149,6 +154,7 @@ class SetupRunner:
         names = {
             "claude-desktop": "Claude Desktop",
             "claude-code": "Claude Code",
+            "claude-code-skill": "Claude Code Skill",
             "opencode": "OpenCode",
             "cursor": "Cursor",
         }

@@ -32,6 +32,13 @@ INTEGRATIONS = [
         "client_type": "claude-code",
     },
     {
+        "title": "Claude Code Skill",
+        "description": "Install /yaade skill for memory commands in Claude Code",
+        "button_text": "Install Skill",
+        "button_id": "setup_claude_code_skill",
+        "client_type": "claude-code-skill",
+    },
+    {
         "title": "OpenCode",
         "description": "Configure Yaade as an MCP server for OpenCode",
         "button_text": "Setup for OpenCode",
