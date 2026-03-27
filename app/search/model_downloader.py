@@ -67,16 +67,23 @@ def is_model_cached(model_id: str) -> bool:
 def get_model_hub_path(model_id: str) -> str:
     """Get the correct HuggingFace hub path for a model.
 
+    Uses hub_org from embedding_models for known models so every supported
+    model loads with the correct org (e.g. BAAI for BGE, sentence-transformers for others).
+
     Args:
         model_id: The model identifier (e.g., 'all-MiniLM-L6-v2')
 
     Returns:
-        Full model path with organization (e.g., 'BAAI/bge-small-en-v1.5')
+        Full model path with organization (e.g., 'BAAI/bge-base-en-v1.5')
     """
-    # BGE models are from BAAI
+    from app.models.embedding_models import get_model_by_id
+
+    model_info = get_model_by_id(model_id)
+    if model_info and "hub_org" in model_info:
+        return f"{model_info['hub_org']}/{model_id}"
+    # Fallback for custom/unknown models: BGE prefix → BAAI, else sentence-transformers
     if model_id.startswith("bge-"):
         return f"BAAI/{model_id}"
-    # Most other models are from sentence-transformers
     return f"sentence-transformers/{model_id}"
 
 

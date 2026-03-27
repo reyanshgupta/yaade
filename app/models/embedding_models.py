@@ -7,10 +7,14 @@ with their specifications. It's used by both the TUI and CLI tools.
 from typing import Optional, List, Dict, Any
 
 
+# HuggingFace org for each model (used for correct hub path; default "sentence-transformers")
+DEFAULT_HUB_ORG = "sentence-transformers"
+
 # Curated list of embedding models with their specifications
 EMBEDDING_MODELS: List[Dict[str, Any]] = [
     {
         "id": "all-MiniLM-L6-v2",
+        "hub_org": DEFAULT_HUB_ORG,
         "name": "MiniLM-L6-v2 (Default)",
         "dimensions": 384,
         "size_mb": 80,
@@ -22,6 +26,7 @@ EMBEDDING_MODELS: List[Dict[str, Any]] = [
     },
     {
         "id": "all-MiniLM-L12-v2",
+        "hub_org": DEFAULT_HUB_ORG,
         "name": "MiniLM-L12-v2",
         "dimensions": 384,
         "size_mb": 120,
@@ -33,6 +38,7 @@ EMBEDDING_MODELS: List[Dict[str, Any]] = [
     },
     {
         "id": "all-mpnet-base-v2",
+        "hub_org": DEFAULT_HUB_ORG,
         "name": "MPNet Base v2",
         "dimensions": 768,
         "size_mb": 420,
@@ -44,6 +50,7 @@ EMBEDDING_MODELS: List[Dict[str, Any]] = [
     },
     {
         "id": "paraphrase-MiniLM-L6-v2",
+        "hub_org": DEFAULT_HUB_ORG,
         "name": "Paraphrase MiniLM-L6",
         "dimensions": 384,
         "size_mb": 80,
@@ -55,6 +62,7 @@ EMBEDDING_MODELS: List[Dict[str, Any]] = [
     },
     {
         "id": "multi-qa-MiniLM-L6-cos-v1",
+        "hub_org": DEFAULT_HUB_ORG,
         "name": "Multi-QA MiniLM-L6",
         "dimensions": 384,
         "size_mb": 80,
@@ -66,6 +74,7 @@ EMBEDDING_MODELS: List[Dict[str, Any]] = [
     },
     {
         "id": "bge-small-en-v1.5",
+        "hub_org": "BAAI",
         "name": "BGE Small v1.5",
         "dimensions": 384,
         "size_mb": 130,
@@ -77,6 +86,7 @@ EMBEDDING_MODELS: List[Dict[str, Any]] = [
     },
     {
         "id": "bge-base-en-v1.5",
+        "hub_org": "BAAI",
         "name": "BGE Base v1.5",
         "dimensions": 768,
         "size_mb": 440,

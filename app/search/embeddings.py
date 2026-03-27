@@ -21,6 +21,8 @@ from typing import List, Union, Optional, Dict, Any
 import asyncio
 import logging
 
+from app.search.model_downloader import get_model_hub_path
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,8 +46,9 @@ class EmbeddingService:
             The loaded SentenceTransformer model
         """
         if self.model is None:
-            logger.info(f"Loading sentence transformer model: {self.model_name}")
-            self.model = SentenceTransformer(self.model_name)
+            hub_path = get_model_hub_path(self.model_name)
+            logger.info(f"Loading sentence transformer model: {hub_path}")
+            self.model = SentenceTransformer(hub_path)
             logger.info("Model loaded successfully")
         return self.model
 

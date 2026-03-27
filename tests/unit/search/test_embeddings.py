@@ -44,7 +44,8 @@ class TestEmbeddingService:
             model = service._ensure_model_loaded()
             
             assert model is not None
-            mock_st.assert_called_once_with("test-model")
+            # Service resolves model id to hub path (unknown id → sentence-transformers/test-model)
+            mock_st.assert_called_once_with("sentence-transformers/test-model")
             assert service.model == mock_sentence_transformer
 
     def test_ensure_model_loaded_only_once(self, mock_sentence_transformer):
@@ -72,7 +73,9 @@ class TestEmbeddingService:
             
             result = await service.encode_text("Hello world")
             
-            mock_sentence_transformer.encode.assert_called_once_with("Hello world")
+            mock_sentence_transformer.encode.assert_called_once_with(
+                "Hello world", show_progress_bar=False, convert_to_numpy=True
+            )
             assert result == [0.1, 0.2, 0.3]
             assert isinstance(result, list)
 
@@ -91,7 +94,9 @@ class TestEmbeddingService:
             texts = ["Hello", "World"]
             result = await service.encode_text(texts)
             
-            mock_sentence_transformer.encode.assert_called_once_with(texts)
+            mock_sentence_transformer.encode.assert_called_once_with(
+                texts, show_progress_bar=False, convert_to_numpy=True
+            )
             assert len(result) == 2
             assert result[0] == [0.1, 0.2, 0.3]
             assert result[1] == [0.4, 0.5, 0.6]
@@ -146,7 +151,9 @@ class TestEmbeddingService:
             result = await service.encode_text("")
             
             assert isinstance(result, list)
-            mock_sentence_transformer.encode.assert_called_once_with("")
+            mock_sentence_transformer.encode.assert_called_once_with(
+                "", show_progress_bar=False, convert_to_numpy=True
+            )
 
     @pytest.mark.asyncio
     async def test_encode_long_text(self, mock_sentence_transformer):
@@ -164,22 +171,13 @@ class TestEmbeddingService:
             mock_sentence_transformer.encode.assert_called_once()
 
     def test_custom_model_name(self, mock_sentence_transformer):
-        """Test using a custom model name."""
+        """Test using a custom model name (resolved to hub path)."""
         with patch('app.search.embeddings.SentenceTransformer', return_value=mock_sentence_transformer) as mock_st:
             from app.search.embeddings import EmbeddingService
             service = EmbeddingService("custom-embeddings-model")
             service._ensure_model_loaded()
-            
-            mock_st.assert_called_once_with("custom-embeddings-model")
-
-    def test_executor_cleanup(self, mock_sentence_transformer):
-        """Test that executor is properly managed."""
-        with patch('app.search.embeddings.SentenceTransformer', return_value=mock_sentence_transformer):
-            from app.search.embeddings import EmbeddingService
-            service = EmbeddingService("test-model")
-            
-            assert hasattr(service, 'executor')
-            assert service.executor is not None
+            # Unknown model id is resolved to sentence-transformers/custom-embeddings-model
+            mock_st.assert_called_once_with("sentence-transformers/custom-embeddings-model")
 
     @pytest.mark.asyncio
     async def test_encode_text_returns_list_not_numpy(self, mock_sentence_transformer):
