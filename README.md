@@ -12,7 +12,7 @@
 - **Multiple Embedding Models**: Choose from 8 sentence-transformer models
 - **Memory Cleanup**: Detect duplicates and consolidate related memories
 - **Theme Support**: 3 built-in cyberpunk themes with live preview
-- **Easy Integration**: Automated setup scripts for Claude Desktop, Claude Code, and OpenCode
+- **Easy Integration**: Automated setup scripts for Claude Desktop, Claude Code, OpenCode, and Cursor
 
 ## Installation
 
@@ -119,6 +119,7 @@ From the TUI, navigate to **Setup** to automatically configure:
 - Claude Desktop (macOS/Windows)
 - Claude Code (macOS/Windows)
 - OpenCode (macOS/Windows)
+- Cursor (macOS/Windows)
 
 Or run the setup scripts directly:
 
@@ -131,6 +132,12 @@ Or run the setup scripts directly:
 
 # OpenCode (macOS)
 ./setup/opencode/setup-mcp-macos.sh
+
+# Cursor (macOS)
+./setup/cursor/setup-mcp-macos.sh
+
+# Claude Code Skill (macOS/Linux)
+./setup/claude-code-skill/setup-skill-macos.sh
 ```
 
 ### Manual Configuration
@@ -195,6 +202,26 @@ Or run the setup scripts directly:
   "mcpServers": {
     "yaade": {
       "type": "stdio",
+      "command": "uv",
+      "args": ["run", "yaade", "serve"],
+      "cwd": "/path/to/yaade",
+      "env": {}
+    }
+  }
+}
+```
+
+#### Cursor
+
+**Config location:**
+- macOS: `~/.cursor/mcp.json` or `~/.cursor/mcp-config.json`
+- Windows: `%APPDATA%\Cursor\mcp.json`
+
+**If installed from source:**
+```json
+{
+  "mcpServers": {
+    "yaade": {
       "command": "uv",
       "args": ["run", "yaade", "serve"],
       "cwd": "/path/to/yaade",
@@ -349,6 +376,8 @@ yaade/
 ├── setup/                   # Client setup scripts
 │   ├── claude-desktop/
 │   ├── claude-code/
+│   ├── claude-code-skill/   # Claude Code /yaade skill
+│   ├── cursor/
 │   └── opencode/
 ├── tests/                   # Test suite
 ├── .agents/                 # AI agent configurations
