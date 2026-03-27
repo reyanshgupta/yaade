@@ -27,6 +27,7 @@ class SetupRunner:
         "claude-desktop": "claude-desktop",
         "claude-code": "claude-code",
         "opencode": "opencode",
+        "cursor": "cursor",
     }
 
     @staticmethod
@@ -41,15 +42,16 @@ class SetupRunner:
     @staticmethod
     def get_script_path(client_type: str) -> Path:
         """Get the path to the setup script for the given client type.
-        
+
         Args:
             client_type: Either 'claude-desktop' or 'claude-code'.
-            
+
         Returns:
             Path to the setup script.
-            
+
         Raises:
-            ValueError: If client_type is not supported.
+            ValueError: If client_type is not supported, OS is unsupported,
+                or the setup script is not found.
         """
         if client_type not in SetupRunner.CLIENT_TYPES:
             raise ValueError(f"Unsupported client type: {client_type}. "
@@ -65,7 +67,17 @@ class SetupRunner:
         else:
             raise ValueError(f"Unsupported OS for automatic setup: {os_type}")
         
-        return Path.cwd() / "setup" / script_dir / script_name
+        # Prefer repo-relative path (works when run from source regardless of cwd)
+        repo_root = Path(__file__).resolve().parent.parent.parent.parent
+        script_path = repo_root / "setup" / script_dir / script_name
+        if script_path.exists():
+            return script_path
+        # For pip installs, setup scripts aren't bundled - raise informative error
+        raise ValueError(
+            f"Setup script not found at {script_path}. "
+            f"If you installed yaade via pip, clone the repo and run setup scripts from there: "
+            f"git clone https://github.com/yaade/yaade && cd yaade && ./setup/{script_dir}/{script_name}"
+        )
 
     @staticmethod
     def run_setup(client_type: str, timeout: int = 30) -> SetupResult:
@@ -82,14 +94,7 @@ class SetupRunner:
             script_path = SetupRunner.get_script_path(client_type)
         except ValueError as e:
             return SetupResult(output="", success=False, error=str(e))
-        
-        if not script_path.exists():
-            return SetupResult(
-                output="",
-                success=False,
-                error=f"Setup script not found: {script_path}"
-            )
-        
+
         os_type = SetupRunner.get_os_type()
         
         try:
@@ -145,5 +150,6 @@ class SetupRunner:
             "claude-desktop": "Claude Desktop",
             "claude-code": "Claude Code",
             "opencode": "OpenCode",
+            "cursor": "Cursor",
         }
         return names.get(client_type, client_type)

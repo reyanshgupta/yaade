@@ -38,6 +38,13 @@ INTEGRATIONS = [
         "button_id": "setup_opencode",
         "client_type": "opencode",
     },
+    {
+        "title": "Cursor",
+        "description": "Configure Yaade as an MCP server for Cursor IDE",
+        "button_text": "Setup for Cursor",
+        "button_id": "setup_cursor",
+        "client_type": "cursor",
+    },
 ]
 
 
