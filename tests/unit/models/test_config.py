@@ -1,21 +1,30 @@
 """Unit tests for ServerConfig model."""
 
+import json
 import pytest
 import os
 from pathlib import Path
 from unittest.mock import patch
 
-from app.models.config import ServerConfig
+from app.models.config import ServerConfig, CENTRAL_CONFIG_PATH
+
+
+@pytest.fixture
+def no_central_config(tmp_path):
+    """Patch central config to a non-existing path so tests see only env/defaults."""
+    with patch("app.models.config.CENTRAL_CONFIG_PATH", tmp_path / "no_config.json"):
+        yield
 
 
 class TestServerConfig:
     """Tests for ServerConfig model."""
 
-    def test_config_default_values(self):
+    def test_config_default_values(self, tmp_path, monkeypatch, no_central_config):
         """Test ServerConfig has correct default values (central ~/.yaade)."""
+        monkeypatch.chdir(tmp_path)  # isolate from project .env
         with patch.dict(os.environ, {}, clear=True):
             config = ServerConfig()
-            
+
             assert config.data_dir == Path.home() / ".yaade"
             assert config.embedding_model_name == "all-MiniLM-L6-v2"
             assert config.embedding_batch_size == 32
@@ -24,21 +33,21 @@ class TestServerConfig:
             assert config.port == 8000
             assert config.log_level == "INFO"
 
-    def test_config_chroma_path_property(self):
+    def test_config_chroma_path_property(self, no_central_config):
         """Test chroma_path computed property."""
         with patch.dict(os.environ, {}, clear=True):
             config = ServerConfig()
         expected = config.data_dir / "chroma"
         assert config.chroma_path == expected
 
-    def test_config_sqlite_path_property(self):
+    def test_config_sqlite_path_property(self, no_central_config):
         """Test sqlite_path computed property."""
         with patch.dict(os.environ, {}, clear=True):
             config = ServerConfig()
         expected = config.data_dir / "metadata.db"
         assert config.sqlite_path == expected
 
-    def test_config_custom_data_dir(self):
+    def test_config_custom_data_dir(self, no_central_config):
         """Test ServerConfig with custom data directory."""
         with patch.dict(os.environ, {"YAADE_DATA_DIR": "/custom/path"}, clear=True):
             config = ServerConfig()
@@ -81,7 +90,7 @@ class TestServerConfig:
             assert not hasattr(config, "unknown_var")
             assert not hasattr(config, "another_unknown")
 
-    def test_config_path_types(self):
+    def test_config_path_types(self, no_central_config):
         """Test that path properties return Path objects."""
         with patch.dict(os.environ, {}, clear=True):
             config = ServerConfig()
@@ -103,14 +112,16 @@ class TestServerConfig:
             assert config.embedding_batch_size == 128
             assert isinstance(config.embedding_batch_size, int)
 
-    def test_config_relative_and_absolute_paths(self):
-        """Test both relative and absolute data_dir paths."""
-        # Relative path
+    def test_config_relative_and_absolute_paths(self, tmp_path, monkeypatch, no_central_config):
+        """Test both relative and absolute data_dir paths (relative are resolved to absolute)."""
+        monkeypatch.chdir(tmp_path)
+        # Relative path is resolved to absolute so storage never depends on cwd
         with patch.dict(os.environ, {"YAADE_DATA_DIR": "relative/path"}, clear=True):
             config = ServerConfig()
-            assert config.data_dir == Path("relative/path")
-        
-        # Absolute path
+            assert config.data_dir.is_absolute()
+            assert config.data_dir == (tmp_path / "relative" / "path").resolve()
+
+        # Absolute path unchanged
         with patch.dict(os.environ, {"YAADE_DATA_DIR": "/absolute/path"}, clear=True):
             config = ServerConfig()
             assert config.data_dir == Path("/absolute/path")
@@ -123,9 +134,20 @@ class TestServerConfig:
                 config = ServerConfig()
                 assert config.log_level == level
 
-    def test_config_data_dir_expands_tilde(self):
+    def test_config_data_dir_expands_tilde(self, no_central_config):
         """Test that ~ in YAADE_DATA_DIR is expanded to home directory."""
         with patch.dict(os.environ, {"YAADE_DATA_DIR": "~/.yaade"}, clear=True):
             config = ServerConfig()
             assert config.data_dir == Path.home() / ".yaade"
             assert config.data_dir.is_absolute()
+
+    def test_config_loads_data_dir_from_central_config(self, tmp_path, monkeypatch):
+        """Test that ServerConfig loads data_dir from ~/.yaade/config.json when present."""
+        config_file = tmp_path / "config.json"
+        config_file.write_text(json.dumps({"data_dir": "/custom/storage"}))
+        with patch.dict(os.environ, {}, clear=True), patch(
+            "app.models.config.CENTRAL_CONFIG_PATH", config_file
+        ):
+            config = ServerConfig()
+            assert config.data_dir == Path("/custom/storage")
+            assert config.chroma_path == Path("/custom/storage/chroma")
