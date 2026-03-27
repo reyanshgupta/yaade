@@ -3,55 +3,63 @@ setlocal enabledelayedexpansion
 
 set "SCRIPT_DIR=%~dp0"
 set "PROJECT_ROOT=%SCRIPT_DIR%..\..\"
-set "CONFIG_DIR=%USERPROFILE%\.config\claude-code"
-set "CONFIG_FILE=%CONFIG_DIR%\mcp.json"
+set "CONFIG_FILE=%USERPROFILE%\.claude.json"
 
 echo Setting up Yaade for Claude Code (Windows)
 echo ===========================================
 
-where uv >nul 2>nul
-if %errorlevel% neq 0 (
-    echo UV is not installed. Please install UV first:
-    echo    https://docs.astral.sh/uv/getting-started/installation/
-    echo    Or use: powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-    exit /b 1
+set "USE_PIP_MODE=0"
+where yaade >nul 2>nul
+if %errorlevel% equ 0 (
+    for /f "tokens=*" %%i in ('where yaade') do set "YAADE_PATH=%%i"
+    for %%i in ("%PROJECT_ROOT%.") do set "PROJECT_ROOT_ABS=%%~fi"
+    echo !YAADE_PATH! | findstr /B /C:"!PROJECT_ROOT_ABS!\.venv\" >nul
+    if %errorlevel% neq 0 set "USE_PIP_MODE=1"
+)
+if "!USE_PIP_MODE!"=="0" (
+    where uv >nul 2>nul
+    if %errorlevel% neq 0 (
+        echo Error: yaade not found in PATH and uv not installed.
+        echo   - Install yaade globally: pip install yaade
+        echo   - Or install uv and run this script from the yaade repo.
+        exit /b 1
+    )
+    for /f "tokens=*" %%i in ('where uv') do set "UV_PATH=%%i"
+    cd /d "%PROJECT_ROOT%"
+    echo Installing dependencies...
+    uv sync
+    for %%i in ("%PROJECT_ROOT%.") do set "PROJECT_ROOT_ABS=%%~fi"
+) else (
+    echo Using pip-installed yaade: !YAADE_PATH!
+    for %%i in ("%PROJECT_ROOT%.") do set "PROJECT_ROOT_ABS=%%~fi"
 )
 
-echo UV found
-
-cd /d "%PROJECT_ROOT%"
-
-echo Installing dependencies...
-uv sync
-
-echo Creating Claude Code config directory...
-if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
+if exist "%CONFIG_FILE%" copy "%CONFIG_FILE%" "%CONFIG_FILE%.backup" >nul
 
 echo Configuring MCP server...
 
-(
-echo {
-echo   "yaade": {
-echo     "command": "uv",
-echo     "args": ["run", "yaade", "serve"^],
-echo     "cwd": "%PROJECT_ROOT:\=\\%",
-echo     "env": {}
-echo   }
-echo }
-) > "%CONFIG_FILE%"
+if "!USE_PIP_MODE!"=="1" (
+    python "%PROJECT_ROOT_ABS%\setup\mcp_config.py" write claude-code "%CONFIG_FILE%" 1 "!YAADE_PATH!"
+) else (
+    python "%PROJECT_ROOT_ABS%\setup\mcp_config.py" write claude-code "%CONFIG_FILE%" 0 "!UV_PATH!" "!PROJECT_ROOT_ABS!"
+)
 
 echo Setup complete!
 echo.
 echo Configuration details:
 echo    Config file: %CONFIG_FILE%
-echo    Project root: %PROJECT_ROOT%
+if "!USE_PIP_MODE!"=="1" (
+    echo    Mode: pip-installed yaade
+    echo    Yaade path: !YAADE_PATH!
+    echo.
+    echo To test: yaade serve
+) else (
+    echo    Mode: run from repo (uv^)
+    echo    Project root: %PROJECT_ROOT_ABS%
+    echo.
+    echo To test: cd "%PROJECT_ROOT_ABS%" ^&^& uv run yaade serve
+)
 echo.
-echo To use Yaade:
-echo    1. Restart Claude Code if it's running
-echo    2. The MCP server will be available as 'yaade'
-echo    3. Use tools like add_memory, search_memories, etc.
+echo Restart Claude Code to use Yaade.
 echo.
-echo To test the server manually:
-echo    cd "%PROJECT_ROOT%" ^&^& uv run yaade serve
-
 pause

@@ -1,69 +1,61 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo Setting up Claude Desktop MCP configuration for Yaade (Windows)...
-
-:: Get the current project directory
 set "PROJECT_DIR=%~dp0..\.."
 for %%i in ("%PROJECT_DIR%") do set "PROJECT_DIR=%%~fi"
 
-:: Find uv.exe in PATH
-where uv >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Error: uv not found in PATH. Please install uv first.
-    echo You can install it from: https://docs.astral.sh/uv/getting-started/installation/
-    pause
-    exit /b 1
+echo Setting up Yaade for Claude Desktop (Windows)
+echo ==============================================
+
+set "USE_PIP_MODE=0"
+where yaade >nul 2>&1
+if %errorlevel% equ 0 (
+    for /f "tokens=*" %%i in ('where yaade') do set "YAADE_PATH=%%i"
+    echo !YAADE_PATH! | findstr /B /C:"!PROJECT_DIR!\.venv\" >nul
+    if %errorlevel% neq 0 set "USE_PIP_MODE=1"
+)
+if "!USE_PIP_MODE!"=="0" (
+    where uv >nul 2>&1
+    if %errorlevel% neq 0 (
+        echo Error: yaade not found in PATH and uv not installed.
+        echo   - Install yaade globally: pip install yaade
+        echo   - Or install uv and run this script from the yaade repo.
+        pause
+        exit /b 1
+    )
+    for /f "tokens=*" %%i in ('where uv') do set "UV_PATH=%%i"
+    echo Using repo + uv (central directory: %PROJECT_DIR%)
+) else (
+    echo Using pip-installed yaade: !YAADE_PATH!
 )
 
-:: Get full path to uv
-for /f "tokens=*" %%i in ('where uv') do set "UV_PATH=%%i"
-
-:: Claude Desktop config directory
 set "CLAUDE_CONFIG_DIR=%APPDATA%\Claude"
 set "CLAUDE_CONFIG_FILE=%CLAUDE_CONFIG_DIR%\claude_desktop_config.json"
 
-:: Create Claude config directory if it doesn't exist
-if not exist "%CLAUDE_CONFIG_DIR%" (
-    mkdir "%CLAUDE_CONFIG_DIR%"
-    echo Created Claude config directory: %CLAUDE_CONFIG_DIR%
+if not exist "%CLAUDE_CONFIG_DIR%" mkdir "%CLAUDE_CONFIG_DIR%"
+if exist "%CLAUDE_CONFIG_FILE%" copy "%CLAUDE_CONFIG_FILE%" "%CLAUDE_CONFIG_FILE%.backup" >nul
+
+echo Configuring MCP server...
+
+if "!USE_PIP_MODE!"=="1" (
+    python "%PROJECT_DIR%\setup\mcp_config.py" write claude-desktop "%CLAUDE_CONFIG_FILE%" 1 "!YAADE_PATH!"
+) else (
+    python "%PROJECT_DIR%\setup\mcp_config.py" write claude-desktop "%CLAUDE_CONFIG_FILE%" 0 "!UV_PATH!" "!PROJECT_DIR!"
 )
-
-:: Check if config file exists
-if exist "%CLAUDE_CONFIG_FILE%" (
-    echo Backing up existing config to claude_desktop_config.json.backup
-    copy "%CLAUDE_CONFIG_FILE%" "%CLAUDE_CONFIG_FILE%.backup" >nul
-)
-
-:: Create or update the configuration
-echo Creating Claude Desktop MCP configuration...
-
-:: Escape backslashes for JSON
-set "UV_PATH_ESCAPED=%UV_PATH:\=\\%"
-set "PROJECT_DIR_ESCAPED=%PROJECT_DIR:\=\\%"
-
-(
-echo {
-echo   "mcpServers": {
-echo     "yaade": {
-echo       "command": "!UV_PATH_ESCAPED!",
-echo       "args": ["run", "--directory", "!PROJECT_DIR_ESCAPED!", "yaade", "serve"],
-echo       "env": {
-echo         "YAADE_LOG_LEVEL": "INFO"
-echo       }
-echo     }
-echo   }
-echo }
-) > "%CLAUDE_CONFIG_FILE%"
 
 echo.
-echo Claude Desktop MCP configuration has been set up successfully!
+echo Setup complete!
 echo.
 echo Configuration details:
-echo - Project directory: %PROJECT_DIR%
-echo - UV path: %UV_PATH%
-echo - Config file: %CLAUDE_CONFIG_FILE%
+if "!USE_PIP_MODE!"=="1" (
+    echo    Mode: pip-installed yaade
+    echo    Yaade path: !YAADE_PATH!
+) else (
+    echo    Mode: run from repo (uv^)
+    echo    Project root: %PROJECT_DIR%
+)
+echo    Config file: %CLAUDE_CONFIG_FILE%
 echo.
-echo Please restart Claude Desktop for the changes to take effect.
+echo Restart Claude Desktop for changes to take effect.
 echo.
 pause

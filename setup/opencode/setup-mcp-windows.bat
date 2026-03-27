@@ -9,63 +9,61 @@ set "CONFIG_FILE=%CONFIG_DIR%\opencode.json"
 echo Setting up Yaade for OpenCode (Windows)
 echo ========================================
 
-where uv >nul 2>nul
-if %errorlevel% neq 0 (
-    echo UV is not installed. Please install UV first:
-    echo    https://docs.astral.sh/uv/getting-started/installation/
-    echo    Or use: powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-    exit /b 1
+set "USE_PIP_MODE=0"
+where yaade >nul 2>nul
+if %errorlevel% equ 0 (
+    for /f "tokens=*" %%i in ('where yaade') do set "YAADE_PATH=%%i"
+    for %%i in ("%PROJECT_ROOT%.") do set "PROJECT_ROOT_ABS=%%~fi"
+    echo !YAADE_PATH! | findstr /B /C:"!PROJECT_ROOT_ABS!\.venv\" >nul
+    if %errorlevel% neq 0 set "USE_PIP_MODE=1"
+)
+if "!USE_PIP_MODE!"=="0" (
+    where uv >nul 2>nul
+    if %errorlevel% neq 0 (
+        echo Error: yaade not found in PATH and uv not installed.
+        echo   - Install yaade globally: pip install yaade
+        echo   - Or install uv and run this script from the yaade repo.
+        exit /b 1
+    )
+    for /f "tokens=*" %%i in ('where uv') do set "UV_PATH=%%i"
+    echo Using repo + uv
+    cd /d "%PROJECT_ROOT%"
+    echo Installing dependencies...
+    uv sync
+    for %%i in ("%PROJECT_ROOT%.") do set "PROJECT_ROOT_ABS=%%~fi"
+) else (
+    echo Using pip-installed yaade: !YAADE_PATH!
+    for %%i in ("%PROJECT_ROOT%.") do set "PROJECT_ROOT_ABS=%%~fi"
 )
 
-echo UV found
-
-cd /d "%PROJECT_ROOT%"
-
-echo Installing dependencies...
-uv sync
-
-echo Creating OpenCode config directory...
+echo Creating config directory...
 if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
+if exist "%CONFIG_FILE%" copy "%CONFIG_FILE%" "%CONFIG_FILE%.backup" >nul
 
 echo Configuring MCP server...
 
-REM Get the absolute path without trailing slash
-for %%i in ("%PROJECT_ROOT%.") do set "PROJECT_ROOT_ABS=%%~fi"
-
-if exist "%CONFIG_FILE%" (
-    echo Existing config found, updating...
-    copy "%CONFIG_FILE%" "%CONFIG_FILE%.backup" >nul
-
-    python -c "import json; f=open(r'%CONFIG_FILE%', 'r'); config=json.load(f); f.close(); config.setdefault('mcp', {}); config['mcp']['yaade']={'type': 'local', 'command': ['uv', '--project', r'%PROJECT_ROOT_ABS%', 'run', 'yaade', 'serve'], 'environment': {}, 'enabled': True}; f=open(r'%CONFIG_FILE%', 'w'); json.dump(config, f, indent=2); f.close(); print('Updated config')"
+if "!USE_PIP_MODE!"=="1" (
+    python "%PROJECT_ROOT_ABS%\setup\mcp_config.py" write opencode "%CONFIG_FILE%" 1 "!YAADE_PATH!"
 ) else (
-    echo Creating new config file...
-    (
-    echo {
-    echo   "$schema": "https://opencode.ai/config.json",
-    echo   "mcp": {
-    echo     "yaade": {
-    echo       "type": "local",
-    echo       "command": ["uv", "--project", "%PROJECT_ROOT_ABS:\=/%", "run", "yaade", "serve"^],
-    echo       "environment": {},
-    echo       "enabled": true
-    echo     }
-    echo   }
-    echo }
-    ) > "%CONFIG_FILE%"
+    python "%PROJECT_ROOT_ABS%\setup\mcp_config.py" write opencode "%CONFIG_FILE%" 0 "!UV_PATH!" "!PROJECT_ROOT_ABS!"
 )
 
 echo Setup complete!
 echo.
 echo Configuration details:
 echo    Config file: %CONFIG_FILE%
-echo    Project root: %PROJECT_ROOT_ABS%
+if "!USE_PIP_MODE!"=="1" (
+    echo    Mode: pip-installed yaade
+    echo    Yaade path: !YAADE_PATH!
+    echo.
+    echo To test: yaade serve
+) else (
+    echo    Mode: run from repo (uv^)
+    echo    Project root: %PROJECT_ROOT_ABS%
+    echo.
+    echo To test: cd "%PROJECT_ROOT_ABS%" ^&^& uv run yaade serve
+)
 echo.
-echo To use Yaade:
-echo    1. Restart OpenCode if it's running
-echo    2. The MCP server will be available as 'yaade'
-echo    3. Use tools like add_memory, search_memories, etc.
+echo Restart OpenCode to use Yaade.
 echo.
-echo To test the server manually:
-echo    cd "%PROJECT_ROOT_ABS%" ^&^& uv run yaade serve
-
 pause

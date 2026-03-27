@@ -10,114 +10,53 @@ CONFIG_FILE="$CONFIG_DIR/opencode.json"
 echo "Setting up Yaade for OpenCode (macOS)"
 echo "======================================"
 
-if ! command -v uv &> /dev/null; then
-    echo "UV is not installed. Please install UV first:"
-    echo "   curl -LsSf https://astral.sh/uv/install.sh | sh"
-    exit 1
+# Detect: pip-installed yaade or run from repo with uv
+YAADE_PATH=""
+command -v yaade &> /dev/null && YAADE_PATH=$(which yaade)
+
+if [[ -n "$YAADE_PATH" && "$YAADE_PATH" != "$PROJECT_ROOT/.venv/"* ]]; then
+    USE_PIP_MODE=1
+    echo "Using pip-installed yaade: $YAADE_PATH"
+else
+    if ! command -v uv &> /dev/null; then
+        echo "Error: yaade not found in PATH and uv not installed."
+        echo "  - Install yaade globally: pip install yaade"
+        echo "  - Or install uv: curl -LsSf https://astral.sh/uv/install.sh | sh"
+        exit 1
+    fi
+    UV_PATH=$(which uv)
+    USE_PIP_MODE=0
+    echo "Using repo + uv (central directory: $PROJECT_ROOT)"
+    cd "$PROJECT_ROOT"
+    echo "Installing dependencies..."
+    uv sync
 fi
 
-echo "UV found"
-
-cd "$PROJECT_ROOT"
-
-echo "Installing dependencies..."
-uv sync
-
-echo "Creating OpenCode config directory..."
 mkdir -p "$CONFIG_DIR"
+[ -f "$CONFIG_FILE" ] && cp "$CONFIG_FILE" "$CONFIG_FILE.backup"
 
 echo "Configuring MCP server..."
 
-# Check if config file exists and has mcp section
-if [ -f "$CONFIG_FILE" ]; then
-    echo "Existing config found, updating..."
-    # Create a backup
-    cp "$CONFIG_FILE" "$CONFIG_FILE.backup"
-
-    # Check if mcp section exists
-    if grep -q '"mcp"' "$CONFIG_FILE"; then
-        # Add yaade to existing mcp section
-        python3 -c "
-import json
-import sys
-
-try:
-    with open('$CONFIG_FILE', 'r') as f:
-        config = json.load(f)
-
-    if 'mcp' not in config:
-        config['mcp'] = {}
-
-    config['mcp']['yaade'] = {
-        'type': 'local',
-        'command': ['uv', '--project', '$PROJECT_ROOT', 'run', 'yaade', 'serve'],
-        'environment': {},
-        'enabled': True
-    }
-
-    with open('$CONFIG_FILE', 'w') as f:
-        json.dump(config, f, indent=2)
-
-    print('Updated existing config')
-except Exception as e:
-    print(f'Error updating config: {e}')
-    sys.exit(1)
-"
-    else
-        # Add mcp section to existing config
-        python3 -c "
-import json
-import sys
-
-try:
-    with open('$CONFIG_FILE', 'r') as f:
-        config = json.load(f)
-
-    config['mcp'] = {
-        'yaade': {
-            'type': 'local',
-            'command': ['uv', '--project', '$PROJECT_ROOT', 'run', 'yaade', 'serve'],
-            'environment': {},
-            'enabled': True
-        }
-    }
-
-    with open('$CONFIG_FILE', 'w') as f:
-        json.dump(config, f, indent=2)
-
-    print('Added mcp section to existing config')
-except Exception as e:
-    print(f'Error updating config: {e}')
-    sys.exit(1)
-"
-    fi
+if [ "$USE_PIP_MODE" = "1" ]; then
+    python3 "$PROJECT_ROOT/setup/mcp_config.py" write opencode "$CONFIG_FILE" 1 "$YAADE_PATH"
 else
-    echo "Creating new config file..."
-    cat > "$CONFIG_FILE" << EOF
-{
-  "\$schema": "https://opencode.ai/config.json",
-  "mcp": {
-    "yaade": {
-      "type": "local",
-      "command": ["uv", "--project", "$PROJECT_ROOT", "run", "yaade", "serve"],
-      "environment": {},
-      "enabled": true
-    }
-  }
-}
-EOF
+    python3 "$PROJECT_ROOT/setup/mcp_config.py" write opencode "$CONFIG_FILE" 0 "$UV_PATH" "$PROJECT_ROOT"
 fi
 
 echo "Setup complete!"
 echo ""
 echo "Configuration details:"
 echo "   Config file: $CONFIG_FILE"
-echo "   Project root: $PROJECT_ROOT"
+if [ "$USE_PIP_MODE" = "1" ]; then
+    echo "   Mode: pip-installed yaade"
+    echo "   Yaade path: $YAADE_PATH"
+    echo ""
+    echo "To test: yaade serve"
+else
+    echo "   Mode: run from repo (uv)"
+    echo "   Project root: $PROJECT_ROOT"
+    echo ""
+    echo "To test: cd '$PROJECT_ROOT' && uv run yaade serve"
+fi
 echo ""
-echo "To use Yaade:"
-echo "   1. Restart OpenCode if it's running"
-echo "   2. The MCP server will be available as 'yaade'"
-echo "   3. Use tools like add_memory, search_memories, etc."
-echo ""
-echo "To test the server manually:"
-echo "   cd '$PROJECT_ROOT' && uv run yaade serve"
+echo "Restart OpenCode to use Yaade."
